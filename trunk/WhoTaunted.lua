@@ -3,6 +3,7 @@ local AceConfig = LibStub("AceConfigDialog-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 local BabbleClass = LibStub("LibBabble-Class-3.0"):GetLookupTable();
 
+TauntData = {};
 local TauntsList = {
 	SingleTarget = {
 		--Warrior
@@ -49,17 +50,81 @@ end
 
 function WhoTaunted:CombatLog(self, event, ...)
 	local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = select(1, ...);
-	if (arg1 == "SPELL_CAST_SUCCESS") then
-		local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
-		if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
-			local link = GetSpellLink(SpellID);
-			WhoTaunted:Print("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r taunts "..arg6.." using "..link..".");
-		end
-	elseif (arg1 == "SPELL_MISSED") then
-		local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
-		if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
-			local link = GetSpellLink(SpellID);
-			WhoTaunted:Print("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r taunt against "..arg6.." using "..link.." failed: "..arg11.."!");
+	if (UnitInParty("player")) or (UnitInRaid("player")) then
+		if (arg1 == "SPELL_AURA_APPLIED") then
+			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
+			if (IsTaunt == true) and (UnitIsPlayer(arg3)) then
+				hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+				table.insert(TauntData,{
+										Taunttype = TauntType;
+										Arg1 = arg1,
+										Arg2 = arg2,
+										Arg3 = arg3,
+										Arg4 = arg4,
+										Arg5 = arg5,
+										Arg6 = arg6,
+										Arg7 = arg7,
+										Arg8 = arg8,
+										Arg9 = arg9,
+										Arg10 = arg10,
+										Arg11 = arg11,
+										Hour = hour,
+										Minute = minute,
+										Seconds = seconds,
+									})
+			end
+			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
+				local link = GetSpellLink(SpellID);
+				if (link) then
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r taunts "..arg6.." using "..link..".", "print");
+				else
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r taunts "..arg6.." using "..arg9..".", "print");
+				end
+			elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
+				local link = GetSpellLink(SpellID);
+				if (link) then
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r AOE taunted using "..link..".", "print");
+				else
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r AOE taunted using "..arg9..".", "print");
+				end
+			end
+		elseif (arg1 == "SPELL_MISSED") then		
+			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
+			if (IsTaunt == true) and (UnitIsPlayer(arg3)) then
+				hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+				table.insert(TauntData,{
+										Taunttype = TauntType;
+										Arg1 = arg1,
+										Arg2 = arg2,
+										Arg3 = arg3,
+										Arg4 = arg4,
+										Arg5 = arg5,
+										Arg6 = arg6,
+										Arg7 = arg7,
+										Arg8 = arg8,
+										Arg9 = arg9,
+										Arg10 = arg10,
+										Arg11 = arg11,
+										Hour = hour,
+										Minute = minute,
+										Seconds = seconds,
+									})
+			end
+			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
+				local link = GetSpellLink(SpellID);
+				if (link) then
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r taunt "..link.." against "..arg6.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+				else
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r taunt "..arg9.." against "..arg6.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+				end
+			elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
+				local link = GetSpellLink(SpellID);
+				if (link) then
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..link.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+				else
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..arg9.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+				end
+			end
 		end
 	end
 end
@@ -116,4 +181,30 @@ function WhoTaunted:GetClassColor(Unit)
 	end
 	
 	return ClassColor;
+end
+
+function WhoTaunted:OutPut(msg, output)
+	if (string.lower(output) == "raid") then
+		if (UnitInRaid("player")) then
+			SendChatMessage(msg, "RAID");
+		end
+	elseif (string.lower(output) == "raidwarning") then
+		if (UnitInRaid("player")) then
+			if (IsRaidLeader()) or (IsRaidOfficer()) then	
+				SendChatMessage(msg, "RAID_WARNING");
+			else
+				SendChatMessage(msg, "RAID");
+			end
+		end
+	elseif (string.lower(output) == "party") then
+		if (UnitInParty("player")) then
+			SendChatMessage(msg, "PARTY");
+		end
+	elseif (string.lower(output) == "say") then
+		SendChatMessage(msg, "SAY");
+	elseif (string.lower(output) == "yell") then
+		SendChatMessage(msg, "YELL");
+	elseif (string.lower(output) == "print") then
+		WhoTaunted:Print(msg);
+	end
 end
