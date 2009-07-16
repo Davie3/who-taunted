@@ -3,7 +3,8 @@ local AceConfig = LibStub("AceConfigDialog-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 local BabbleClass = LibStub("LibBabble-Class-3.0"):GetLookupTable();
 
-TauntData = {};
+local inCombat = false;
+WhoTaunted_TauntData = {};
 local TauntsList = {
 	SingleTarget = {
 		--Warrior
@@ -34,6 +35,8 @@ local TauntsList = {
 
 function WhoTaunted:OnInitialize()
 	WhoTaunted:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLog")
+	WhoTaunted:RegisterEvent("PLAYER_REGEN_ENABLED", "CombatEnd")
+	WhoTaunted:RegisterEvent("PLAYER_REGEN_DISABLED", "CombatBegin")
 	
 	WhoTaunted:RegisterChatCommand("whotaunted", "ChatCommand")
 	WhoTaunted:RegisterChatCommand("wtaunted", "ChatCommand")
@@ -50,13 +53,24 @@ end
 
 function WhoTaunted:CombatLog(self, event, ...)
 	local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = select(1, ...);
-	if (UnitInParty("player")) or (UnitInRaid("player")) then
+	if (UnitInParty("player")) or (UnitInRaid("player")) and (WhoTaunted.db.profile.Disabled == false) then
 		if (arg1 == "SPELL_AURA_APPLIED") then
 			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
-			if (IsTaunt == true) and (UnitIsPlayer(arg3)) then
+			if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
 				hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
-				table.insert(TauntData,{
-										Taunttype = TauntType;
+				local time;
+				if (minute < 10) then
+					time = hour..":0"..minute;
+				else
+					time = hour..":"..minute;
+				end
+				if (seconds < 10) then
+					time = time..":0"..seconds;
+				else
+					time = time..":"..seconds;
+				end
+				table.insert(WhoTaunted_TauntData,{
+										Taunttype = TauntType,
 										Arg1 = arg1,
 										Arg2 = arg2,
 										Arg3 = arg3,
@@ -68,32 +82,75 @@ function WhoTaunted:CombatLog(self, event, ...)
 										Arg9 = arg9,
 										Arg10 = arg10,
 										Arg11 = arg11,
-										Hour = hour,
-										Minute = minute,
-										Seconds = seconds,
+										Time = time,
 									})
 			end
 			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
-				local link = GetSpellLink(SpellID);
-				if (link) then
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r taunts "..arg6.." using "..link..".", "print");
-				else
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r taunts "..arg6.." using "..arg9..".", "print");
-				end
-			elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
-				local link = GetSpellLink(SpellID);
-				if (link) then
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r AOE taunted using "..link..".", "print");
-				else
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r AOE taunted using "..arg9..".", "print");
-				end
+				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, hour, seconds, minute) == false) then
+					local link = GetSpellLink(SpellID);
+					if (link) then
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r"..L[" taunts "]..arg6..L[" using "]..link..".", "print");
+					else
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r"..L[" taunts "]..arg6..L[" using "]..arg9..".", "print");
+					end
+				end			
 			end
-		elseif (arg1 == "SPELL_MISSED") then		
+		elseif (arg1 == "SPELL_CAST_SUCCESS") then
 			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
-			if (IsTaunt == true) and (UnitIsPlayer(arg3)) then
+			if (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
+					hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+					local time;
+					if (minute < 10) then
+						time = hour..":0"..minute;
+					else
+						time = hour..":"..minute;
+					end
+					if (seconds < 10) then
+						time = time..":0"..seconds;
+					else
+						time = time..":"..seconds;
+					end
+					table.insert(WhoTaunted_TauntData,{
+											Taunttype = TauntType,
+											Arg1 = arg1,
+											Arg2 = arg2,
+											Arg3 = arg3,
+											Arg4 = arg4,
+											Arg5 = arg5,
+											Arg6 = arg6,
+											Arg7 = arg7,
+											Arg8 = arg8,
+											Arg9 = arg9,
+											Arg10 = arg10,
+											Arg11 = arg11,
+											Time = time,
+										})
+				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, hour, seconds, minute) == false) then
+					local link = GetSpellLink(SpellID);
+					if (link) then
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r"..L[" AOE taunted using "]..link..".", "print");
+					else
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r"..L[" AOE taunted using "]..arg9..".", "print");
+					end
+				end
+			end
+		elseif (arg1 == "SPELL_MISSED") and (WhoTaunted.db.profile.AnounceFails == true) then		
+			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
+			if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
 				hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
-				table.insert(TauntData,{
-										Taunttype = TauntType;
+				local time;
+				if (minute < 10) then
+					time = hour..":0"..minute;
+				else
+					time = hour..":"..minute;
+				end
+				if (seconds < 10) then
+					time = time..":0"..seconds;
+				else
+					time = time..":"..seconds;
+				end
+				table.insert(WhoTaunted_TauntData,{
+										Taunttype = TauntType,
 										Arg1 = arg1,
 										Arg2 = arg2,
 										Arg3 = arg3,
@@ -105,28 +162,46 @@ function WhoTaunted:CombatLog(self, event, ...)
 										Arg9 = arg9,
 										Arg10 = arg10,
 										Arg11 = arg11,
-										Hour = hour,
-										Minute = minute,
-										Seconds = seconds,
+										Time = time,
 									})
 			end
 			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
-				local link = GetSpellLink(SpellID);
-				if (link) then
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r taunt "..link.." against "..arg6.." |c00FF0000FAILED: "..arg11.."|r!", "print");
-				else
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r taunt "..arg9.." against "..arg6.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, hour, seconds, minute) == false) then
+					local link = GetSpellLink(SpellID);
+					if (link) then
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunts "]..link..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", "print");
+					else
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunts "]..arg9..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", "print");
+					end
 				end
-			elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
-				local link = GetSpellLink(SpellID);
-				if (link) then
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..link.." |c00FF0000FAILED: "..arg11.."|r!", "print");
-				else
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..arg9.." |c00FF0000FAILED: "..arg11.."|r!", "print");
-				end
+			--elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
+				--if (WhoTaunted:CheckIfRecentlyTaunted(arg3, hour, seconds, minute) == false) then
+					--local link = GetSpellLink(SpellID);
+					--if (link) then
+						--WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..link.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+					--else
+						--WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r AOE taunt "..arg9.." |c00FF0000FAILED: "..arg11.."|r!", "print");
+					--end
+				--end
 			end
+		elseif (arg1 == "UNIT_DIED") then
+			WhoTaunted:ClearTauntData();
 		end
 	end
+end
+
+function WhoTaunted:CombatBegin()
+	inCombat = true;
+	WhoTaunted:ClearTauntData();
+end
+
+function WhoTaunted:CombatEnd()
+	inCombat = false;
+	WhoTaunted:ClearTauntData();
+end
+
+function WhoTaunted:ClearTauntData()
+	WhoTaunted_TauntData = table.wipe(WhoTaunted_TauntData);
 end
 
 function WhoTaunted:IsTaunt(SpellName)
@@ -144,6 +219,17 @@ function WhoTaunted:IsTaunt(SpellName)
 		end
 	end
 	return IsTaunt, TauntType, SpellID;
+end
+
+function WhoTaunted:CheckIfRecentlyTaunted(Name, Hour, Minute, Seconds)
+	local RecentlyTaunted = false;
+	for k, v in pairs(WhoTaunted_TauntData) do
+		if (WhoTaunted_TauntData[k].Arg3 == Name) and (WhoTaunted_TauntData[k].Hour == Hour) and (WhoTaunted_TauntData[k].Seconds == Seconds) and (WhoTaunted_TauntData[k].Minute == minute) then
+			RecentlyTaunted = true;
+			break;
+		end
+	end
+	return RecentlyTaunted;
 end
 
 function WhoTaunted:GetClassColor(Unit)
