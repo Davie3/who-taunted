@@ -2,7 +2,8 @@
 
 WhoTaunted.defaults = {
 	profile = {
-		Disbaled = false,
+		Disabled = false,
 		AnounceFails = true,
+		AnounceFailsOutput = 1,
 	},
 }

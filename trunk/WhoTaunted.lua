@@ -168,10 +168,18 @@ function WhoTaunted:CombatLog(self, event, ...)
 			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
 				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, hour, seconds, minute) == false) then
 					local link = GetSpellLink(SpellID);
-					if (link) then
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunts "]..link..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", "print");
+					if (WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput) == "print") then
+						if (link) then
+							WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunt "]..link..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+						else
+							WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunt "]..arg9..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+						end
 					else
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r"..L[" taunts "]..arg9..L[" against "]..arg6.." |c00FF0000"..L["FAILED: "]..arg11.."|r!", "print");
+						if (link) then
+							WhoTaunted:OutPut(arg3.."'s"..L[" taunt "]..link..L[" against "]..arg6..L["FAILED: "]..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+						else
+							WhoTaunted:OutPut(arg3.."'s"..L[" taunt "]..arg9..L[" against "]..arg6..L["FAILED: "]..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+						end
 					end
 				end
 			--elseif (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
@@ -293,4 +301,22 @@ function WhoTaunted:OutPut(msg, output)
 	elseif (string.lower(output) == "print") then
 		WhoTaunted:Print(msg);
 	end
+end
+
+function WhoTaunted:GetOutPutType(OptionsValue)
+	local Output;
+	if (OptionsValue == 1) then
+		Output = "print";
+	elseif (OptionsValue == 2) then
+		Output = "party";
+	elseif (OptionsValue == 3) then
+		Output = "raid";
+	elseif (OptionsValue == 4) then
+		Output = "raidwarning";
+	elseif (OptionsValue == 5) then
+		Output = "say";
+	elseif (OptionsValue == 6) then
+		Output = "yell";
+	end
+	return Output;
 end
