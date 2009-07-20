@@ -91,9 +91,9 @@ function WhoTaunted:CombatLog(self, event, ...)
 				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, time) == false) then
 					local link = GetSpellLink(SpellID);
 					if (link) then
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["taunts"]..arg6.." "..L["using"].." "..link..".", "print");
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["taunts"].." "..arg6.." "..L["using"].." "..link..".", "print");
 					else
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.." "..L["taunts"]..arg6.." "..L["using"].." "..arg9..".", "print");
+						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.." "..L["taunts"].." "..arg6.." "..L["using"].." "..arg9..".", "print");
 					end
 				end			
 			end
@@ -127,13 +127,11 @@ function WhoTaunted:CombatLog(self, event, ...)
 											Arg11 = arg11,
 											Time = time,
 										})
-				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, time) == false) then
-					local link = GetSpellLink(SpellID);
-					if (link) then
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..link..".", "print");
-					else
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..arg9..".", "print");
-					end
+				local link = GetSpellLink(SpellID);
+				if (link) then
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..link..".", "print");
+				else
+					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..arg9..".", "print");
 				end
 			end
 		elseif (arg1 == "SPELL_MISSED") and (WhoTaunted.db.profile.AnounceFails == true) then		
@@ -141,7 +139,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 			--Death Grip is different in that it kind of has 2 effects. It taunts then attempts pull the mob to you.
 			--This causes 2 different events and with most mobs immuned to Death Grip's pull effect but not its taunt 
 			--WhoTaunted starts to get spammy with successful Death Grip taunts then immuned ones. So I hacky hackyed!
-			if (SpellID ~= 49576) and (arg11 ~= string.upper(L["Immune"])) and (IsTaunt == true) and (TauntType == "SingleTarget") then
+			if not (SpellID == 49576 and arg11 == string.upper(L["Immune"])) and (IsTaunt == true) and (TauntType == "SingleTarget") then
 				if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
 						hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
 						local time;
