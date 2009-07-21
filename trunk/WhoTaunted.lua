@@ -5,6 +5,7 @@ local BabbleClass = LibStub("LibBabble-Class-3.0"):GetLookupTable();
 
 local KDOEN = false;
 
+local BgDisable = false;
 local inCombat = false;
 WhoTaunted_TauntData = {};
 local TauntsList = {
@@ -46,16 +47,16 @@ function WhoTaunted:OnInitialize()
 	
 	WhoTaunted.db = LibStub("AceDB-3.0"):New("WhoTauntedDB", WhoTaunted.defaults, "profile");
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("WhoTaunted", WhoTaunted.options)
-	AceConfig:AddToBlizOptions("WhoTaunted", L["Who Taunted?"].." v"..GetAddOnMetadata("HALootManager", "Version"));
+	AceConfig:AddToBlizOptions("WhoTaunted", L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
 end
 
 function WhoTaunted:ChatCommand()
-	InterfaceOptionsFrame_OpenToCategory(L["Who Taunted?"].." v"..GetAddOnMetadata("HALootManager", "Version"));
+	InterfaceOptionsFrame_OpenToCategory(L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
 end
 
 function WhoTaunted:CombatLog(self, event, ...)
 	local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = select(1, ...);
-	if (UnitInParty("player")) or (UnitInRaid("player")) and (WhoTaunted.db.profile.Disabled == false) then
+	if (UnitInParty("player")) or (UnitInRaid("player")) and (WhoTaunted.db.profile.Disabled == false) and (BgDisable == false) then
 		if (arg1 == "SPELL_AURA_APPLIED") then
 			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
 			if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
@@ -90,10 +91,20 @@ function WhoTaunted:CombatLog(self, event, ...)
 			if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
 				if (WhoTaunted:CheckIfRecentlyTaunted(arg3, time) == false) then
 					local link = GetSpellLink(SpellID);
-					if (link) then
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["taunts"].." "..arg6.." "..L["using"].." "..link..".", "print");
-					else
-						WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.." "..L["taunts"].." "..arg6.." "..L["using"].." "..arg9..".", "print");
+					if (WhoTaunted.db.profile.AnounceTaunts == true) then
+						if (WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceTauntsOutput) == "print") then
+							if (link) then
+								WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r "..L["taunts"].." "..arg6.." "..L["using"].." "..link..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceTauntsOutput));
+							else
+								WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r "..L["taunts"].." "..arg6.." "..L["using"].." "..arg9..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceTauntsOutput));
+							end
+						else
+							if (link) then
+								WhoTaunted:OutPut("<WhoTaunted> "..arg3.." "..L["taunts"].." "..arg6.." "..L["using"].." "..link..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceTauntsOutput));
+							else
+								WhoTaunted:OutPut("<WhoTaunted> "..arg3.." "..L["taunts"].." "..arg6.." "..L["using"].." "..arg9..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceTauntsOutput));
+							end
+						end
 					end
 				end			
 			end
@@ -128,10 +139,20 @@ function WhoTaunted:CombatLog(self, event, ...)
 											Time = time,
 										})
 				local link = GetSpellLink(SpellID);
-				if (link) then
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..link..".", "print");
-				else
-					WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r".." "..L["AOE taunted using"].." "..arg9..".", "print");
+				if (WhoTaunted.db.profile.AnounceAOETaunts == true) then
+					if (WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceAOETauntsOutput) == "print") then
+						if (link) then
+							WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r "..L["AOE taunted using"].." "..link..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceAOETauntsOutput));
+						else
+							WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."|r "..L["AOE taunted using"].." "..arg9..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceAOETauntsOutput));
+						end
+					else
+						if (link) then
+							WhoTaunted:OutPut("<WhoTaunted> "..arg3.." "..L["AOE taunted using"].." "..link..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceAOETauntsOutput));
+						else
+							WhoTaunted:OutPut("<WhoTaunted> "..arg3.." "..L["AOE taunted using"].." "..arg9..".", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceAOETauntsOutput));
+						end
+					end
 				end
 			end
 		elseif (arg1 == "SPELL_MISSED") and (WhoTaunted.db.profile.AnounceFails == true) then		
@@ -172,24 +193,26 @@ function WhoTaunted:CombatLog(self, event, ...)
 				if (IsTaunt == true) and (TauntType == "SingleTarget") and (UnitIsPlayer(arg3)) then
 					if (WhoTaunted:CheckIfRecentlyTaunted(arg3, time) == false) then
 						local link = GetSpellLink(SpellID);
-						if (WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput) == "print") then
-							if (link) then
-								WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r".." "..L["taunt"].." "..link.." "..L["against"].." "..arg6.." |c00FF0000"..string.upper(L["Failed:"]).." "..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+						if (WhoTaunted.db.profile.AnounceFails == true) then
+							if (WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput) == "print") then
+								if (link) then
+									WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r "..L["taunt"].." "..link.." "..L["against"].." "..arg6.." |c00FF0000"..string.upper(L["Failed:"]).." "..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+								else
+									WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s|r "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6.." |c00FF0000"..string.upper(L["Failed:"]).." "..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+								end
 							else
-								WhoTaunted:OutPut("|c"..WhoTaunted:GetClassColor(arg3)..arg3.."'s".."|r".." "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6.." |c00FF0000"..string.upper(L["Failed:"]).." "..arg11.."|r!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
-							end
-						else
-							if (link) then
-								WhoTaunted:OutPut(arg3.."'s".." "..L["taunt"].." "..link.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
-							else
-								WhoTaunted:OutPut(arg3.."'s".." "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+								if (link) then
+									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..link.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+								else
+									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+								end
 							end
 						end
 					end
 				end
 			end
 		elseif (arg1 == "UNIT_DIED") then
-			if (UnitClassification(arg6) == "worldboss") and (not UnitIsFriend("player", arg6)) then
+			if (UnitClassification(arg6) == "worldboss") then
 				if (KDOEN == false) then
 					WhoTaunted:Print(arg6.." died and I detected it correctly :O!");
 					KDOEN = true;
@@ -208,6 +231,15 @@ end
 function WhoTaunted:CombatEnd()
 	inCombat = false;
 	WhoTaunted:ClearTauntData();
+end
+
+function WhoTaunted:EnteringWorldOnEvent()
+	local inInstance, instanceType = IsInInstance()
+	if (inInstance == 1) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
+		BgDisable = true;
+	else
+		BgDisable = false;
+	end
 end
 
 function WhoTaunted:ClearTauntData()
