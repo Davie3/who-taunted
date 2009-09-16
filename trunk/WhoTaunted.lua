@@ -7,7 +7,7 @@ local KDOEN = false;
 
 local BgDisable = false;
 local inCombat = false;
-WhoTaunted_TauntData = {};
+local TauntData = {};
 local TauntsList = {
 	SingleTarget = {
 		--Warrior
@@ -23,6 +23,9 @@ local TauntsList = {
 		
 		--Druid
 		6795, --Growl
+		
+		--Hunter
+		20736, --Distracting Shot
 	},
 	AOE = {
 		--Warrior
@@ -33,6 +36,9 @@ local TauntsList = {
 		
 		--Druid
 		5209, --Challenging Roar
+		
+		--Warlock
+		59671, --Challenging Howl
 	},
 };
 
@@ -60,7 +66,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 		if (arg1 == "SPELL_AURA_APPLIED") then
 			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
 			if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
-				hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+				local hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
 				local time;
 				if (minute < 10) then
 					time = hour..":0"..minute;
@@ -72,7 +78,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 				else
 					time = time..":"..seconds;
 				end
-				table.insert(WhoTaunted_TauntData,{
+				table.insert(TauntData,{
 										Taunttype = TauntType,
 										Arg1 = arg1,
 										Arg2 = arg2,
@@ -111,7 +117,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 		elseif (arg1 == "SPELL_CAST_SUCCESS") then
 			local IsTaunt, TauntType, SpellID = WhoTaunted:IsTaunt(arg9);
 			if (IsTaunt == true) and (TauntType == "AOE") and (UnitIsPlayer(arg3)) then
-					hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+					local hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
 					local time;
 					if (minute < 10) then
 						time = hour..":0"..minute;
@@ -123,7 +129,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 					else
 						time = time..":"..seconds;
 					end
-					table.insert(WhoTaunted_TauntData,{
+					table.insert(TauntData,{
 											Taunttype = TauntType,
 											Arg1 = arg1,
 											Arg2 = arg2,
@@ -162,7 +168,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 			--WhoTaunted starts to get spammy with successful Death Grip taunts then immuned ones. So I hacky hackyed!
 			if not (SpellID == 49576 and arg11 == string.upper(L["Immune"])) and (IsTaunt == true) and (TauntType == "SingleTarget") then
 				if (IsTaunt == true) and (UnitIsPlayer(arg3)) and (TauntType == "SingleTarget") then
-						hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
+						local hour, minute, seconds = tonumber(date("%H")), tonumber(date("%M")), tonumber(date("%S"));
 						local time;
 						if (minute < 10) then
 							time = hour..":0"..minute;
@@ -174,7 +180,7 @@ function WhoTaunted:CombatLog(self, event, ...)
 						else
 							time = time..":"..seconds;
 						end
-						table.insert(WhoTaunted_TauntData,{
+						table.insert(TauntData,{
 												Taunttype = TauntType,
 												Arg1 = arg1,
 												Arg2 = arg2,
@@ -202,23 +208,35 @@ function WhoTaunted:CombatLog(self, event, ...)
 								end
 							else
 								if (link) then
-									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..link.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..link.." "..L["against"].." "..arg6.." "..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
 								else
-									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
+									WhoTaunted:OutPut("<WhoTaunted> "..arg3.."'s "..L["taunt"].." "..arg9.." "..L["against"].." "..arg6.." "..string.upper(L["Failed:"]).." "..arg11.."!", WhoTaunted:GetOutPutType(WhoTaunted.db.profile.AnounceFailsOutput));
 								end
 							end
 						end
 					end
 				end
 			end
-		elseif (arg1 == "UNIT_DIED") then
-			if (UnitClassification(arg6) == "worldboss") then
-				if (KDOEN == false) then
-					WhoTaunted:Print(arg6.." died and I detected it correctly :O!");
-					KDOEN = true;
-				end
-				WhoTaunted:ClearTauntData();
-			end
+		--elseif (arg1 == "UNIT_DIED") then
+			--WhoTaunted:Print(arg6..": "..UnitClassification(arg6));
+			--WhoTaunted:Print(arg1);
+			--WhoTaunted:Print(arg2);
+			--WhoTaunted:Print(arg3);
+			--WhoTaunted:Print(arg4);
+			--WhoTaunted:Print(arg5);
+			--WhoTaunted:Print(arg6);
+			--WhoTaunted:Print(arg7);
+			--WhoTaunted:Print(arg8);
+			--WhoTaunted:Print(arg9);
+			--WhoTaunted:Print(arg10);
+			--WhoTaunted:Print(arg11);			
+			--if (UnitClassification(arg6) == "worldboss") then
+				--if (KDOEN == false) then
+					--WhoTaunted:Print(arg6.." died and I detected it correctly :O!");
+					--KDOEN = true;
+				--end
+				--WhoTaunted:ClearTauntData();
+			--end
 		end
 	end
 end
@@ -243,7 +261,7 @@ function WhoTaunted:EnteringWorldOnEvent()
 end
 
 function WhoTaunted:ClearTauntData()
-	--WhoTaunted_TauntData = table.wipe(WhoTaunted_TauntData);
+	TauntData = table.wipe(TauntData);
 end
 
 function WhoTaunted:IsTaunt(SpellName)
@@ -265,8 +283,8 @@ end
 
 function WhoTaunted:CheckIfRecentlyTaunted(Name, Time)
 	local RecentlyTaunted = false;
-	for k, v in pairs(WhoTaunted_TauntData) do
-		if (WhoTaunted_TauntData[k].Arg3 == Name) and (WhoTaunted_TauntData[k].Time == Time) then
+	for k, v in pairs(TauntData) do
+		if (TauntData[k].Arg3 == Name) and (TauntData[k].Time == Time) then
 			RecentlyTaunted = true;
 			break;
 		end
@@ -279,28 +297,26 @@ function WhoTaunted:GetClassColor(Unit)
 	local ClassColor = nil;
 	if (Unit) then
 		localizedclass = UnitClass(Unit);
-		if (localizedclass) then
-			if (string.lower(localizedclass) == string.lower(BabbleClass["DEATHKNIGHT"])) then
-				ClassColor = "00C41F3B";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["DRUID"])) then
-				ClassColor = "00FF7D0A";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["HUNTER"])) then
-				ClassColor = "00ABD473";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["MAGE"])) then
-				ClassColor = "0069CCF0";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["PALADIN"])) then
-				ClassColor = "00F58CBA";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["PRIEST"])) then
-				ClassColor = "00FFFFFF";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["ROGUE"])) then
-				ClassColor = "00FFF569";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["SHAMAN"])) then
-				ClassColor = "002459FF";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["WARLOCK"])) then
-				ClassColor = "009482CA";
-			elseif (string.lower(localizedclass) == string.lower(BabbleClass["WARRIOR"])) then
-				ClassColor = "00C79C6E";
-			end
+		if (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["DEATHKNIGHT"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["DEATHKNIGHT"])) then
+			ClassColor = "00C41F3B";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["DRUID"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["DRUID"])) then
+			ClassColor = "00FF7D0A";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["HUNTER"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["HUNTER"])) then
+			ClassColor = "00ABD473";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["MAGE"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["MAGE"])) then
+			ClassColor = "0069CCF0";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["PALADIN"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["PALADIN"])) then
+			ClassColor = "00F58CBA";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["PRIEST"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["PRIEST"])) then
+			ClassColor = "00FFFFFF";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["ROGUE"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["ROGUE"])) then
+			ClassColor = "00FFF569";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["SHAMAN"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["SHAMAN"])) then
+			ClassColor = "002459FF";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["WARLOCK"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["WARLOCK"])) then
+			ClassColor = "009482CA";
+		elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["WARRIOR"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["WARRIOR"])) then
+			ClassColor = "00C79C6E";
 		end
 	end
 	
@@ -313,20 +329,27 @@ end
 
 function WhoTaunted:OutPut(msg, output)
 	if (string.lower(output) == "raid") then
-		if (UnitInRaid("player")) then
-			SendChatMessage(msg, "RAID");
+		local isInRaid = UnitInRaid("player");
+		if (isInRaid) then
+			if (isInRaid >= 1) then
+				SendChatMessage(msg, "RAID");
+			end
 		end
-	elseif (string.lower(output) == "raidwarning") then
-		if (UnitInRaid("player")) then
-			if (IsRaidLeader()) or (IsRaidOfficer()) then	
+	elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
+		local isInRaid = UnitInRaid("player");
+		if (isInRaid) then
+			if (isInRaid >= 1) and ((IsRaidLeader()) or (IsRaidOfficer())) then	
 				SendChatMessage(msg, "RAID_WARNING");
 			else
 				SendChatMessage(msg, "RAID");
 			end
 		end
 	elseif (string.lower(output) == "party") then
-		if (UnitInParty("player")) then
-			SendChatMessage(msg, "PARTY");
+		local isInParty = UnitInParty("player");
+		if (isInParty) then
+			if (isInParty >= 1) then
+				SendChatMessage(msg, "PARTY");
+			end
 		end
 	elseif (string.lower(output) == "say") then
 		SendChatMessage(msg, "SAY");

@@ -60,10 +60,4 @@
 	<Include file="Libs\Ace3\AceBucket-3.0\AceBucket-3.0.xml" />
 	<Script file="Libs\Ace3\AceBucket-3.0\AceBucket-3.0.lua" />	
 <!--Ace3-->
-
-<!--LibBabble-->
-	<Include file="Libs\LibBabble-Class-3.0\lib.xml" />
-	<Script file="Libs\LibBabble-Class-3.0\LibBabble-Class-3.0.lua" />
-	<Script file="Libs\LibBabble-Class-3.0\LibStub\LibStub.lua" />
-<!--LibBabble-->
 </Ui>
