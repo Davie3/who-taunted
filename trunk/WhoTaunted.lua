@@ -3,8 +3,6 @@ local AceConfig = LibStub("AceConfigDialog-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 local BabbleClass = LibStub("LibBabble-Class-3.0"):GetLookupTable();
 
-local KDOEN = false;
-
 local BgDisable = false;
 local inCombat = false;
 local TauntData = {};
@@ -217,26 +215,6 @@ function WhoTaunted:CombatLog(self, event, ...)
 					end
 				end
 			end
-		--elseif (arg1 == "UNIT_DIED") then
-			--WhoTaunted:Print(arg6..": "..UnitClassification(arg6));
-			--WhoTaunted:Print(arg1);
-			--WhoTaunted:Print(arg2);
-			--WhoTaunted:Print(arg3);
-			--WhoTaunted:Print(arg4);
-			--WhoTaunted:Print(arg5);
-			--WhoTaunted:Print(arg6);
-			--WhoTaunted:Print(arg7);
-			--WhoTaunted:Print(arg8);
-			--WhoTaunted:Print(arg9);
-			--WhoTaunted:Print(arg10);
-			--WhoTaunted:Print(arg11);			
-			--if (UnitClassification(arg6) == "worldboss") then
-				--if (KDOEN == false) then
-					--WhoTaunted:Print(arg6.." died and I detected it correctly :O!");
-					--KDOEN = true;
-				--end
-				--WhoTaunted:ClearTauntData();
-			--end
 		end
 	end
 end
