@@ -25,7 +25,10 @@ WhoTaunted.options = {
 			desc = L["Disables Who Taunted? while you are in a battleground."],
 			width = "full",
 			get = function(info) return WhoTaunted.db.profile.DisableInBG; end,
-			set = function(info, v) WhoTaunted.db.profile.DisableInBG = v; end,
+			set = function(info, v)
+				WhoTaunted.db.profile.DisableInBG = v;
+				WhoTaunted:EnteringWorldOnEvent();
+			end,
 			order = 30
 		},
 		Announcements = {
