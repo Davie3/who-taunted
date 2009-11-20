@@ -304,36 +304,42 @@ function WhoTaunted:GetClassColor(Unit)
 	return ClassColor;
 end
 
-function WhoTaunted:OutPut(msg, output)
-	if (string.lower(output) == "raid") then
-		local isInRaid = UnitInRaid("player");
-		if (isInRaid) then
-			if (isInRaid >= 1) then
-				SendChatMessage(msg, "RAID");
+function WhoTaunted:OutPut(msg, output, dest)
+	if (msg) and (output) then
+		if (string.lower(output) == "raid") then
+			local isInRaid = UnitInRaid("player");
+			if (isInRaid) then
+				if (isInRaid >= 1) then
+					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
+				end
 			end
-		end
-	elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
-		local isInRaid = UnitInRaid("player");
-		if (isInRaid) then
-			if (isInRaid >= 1) and ((IsRaidLeader()) or (IsRaidOfficer())) then	
-				SendChatMessage(msg, "RAID_WARNING");
-			else
-				SendChatMessage(msg, "RAID");
+		elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
+			local isInRaid = UnitInRaid("player");
+			if (isInRaid) then
+				if (isInRaid >= 1) and ((IsRaidLeader()) or (IsRaidOfficer())) then	
+					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID_WARNING");
+				else
+					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
+				end
 			end
-		end
-	elseif (string.lower(output) == "party") then
-		local isInParty = UnitInParty("player");
-		if (isInParty) then
-			if (isInParty >= 1) then
-				SendChatMessage(msg, "PARTY");
+		elseif (string.lower(output) == "party") then
+			local isInParty = UnitInParty("player");
+			if (isInParty) then
+				if (isInParty >= 1) then
+					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "PARTY");
+				end
 			end
+		elseif (string.lower(output) == "say") then
+			ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "SAY");
+		elseif (string.lower(output) == "whisper") and (dest) then
+			ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "WHISPER", nil, dest);	
+		elseif (string.lower(output) == "guild") then
+			ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "GUILD");
+		elseif (string.lower(output) == "officer") then
+			ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "OFFICER");
+		elseif (string.lower(output) == "print") then
+			WhoTaunted:Print(tostring(msg));
 		end
-	elseif (string.lower(output) == "say") then
-		SendChatMessage(msg, "SAY");
-	elseif (string.lower(output) == "yell") then
-		SendChatMessage(msg, "YELL");
-	elseif (string.lower(output) == "print") then
-		WhoTaunted:Print(msg);
 	end
 end
 
