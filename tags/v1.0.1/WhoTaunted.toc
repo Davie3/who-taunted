@@ -1,0 +1,21 @@
+## Author: Davie3
+## Interface: 30200
+## Notes: Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
+## OptionalDeps: Ace3
+## SavedVariables: WhoTauntedDB
+## Title: Who Taunted?
+## Version: 1.0.1
+## X-Embeds: Ace3
+embeds.xml
+Localization\zhTW.lua
+Localization\zhCN.lua
+Localization\ruRU.lua
+Localization\koKR.lua
+Localization\frFR.lua
+Localization\esMX.lua
+Localization\esES.lua
+Localization\enUS.lua
+Localization\deDE.lua
+WhoTaunted.lua
+Data\Options.lua
+Data\Defaults.lua
