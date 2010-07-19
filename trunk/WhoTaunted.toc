@@ -4,7 +4,7 @@
 ## OptionalDeps: Ace3
 ## SavedVariables: WhoTauntedDB
 ## Title: Who Taunted?
-## Version: 1.0.1
+## Version: 1.1
 ## X-Embeds: Ace3
 embeds.xml
 Localization\zhTW.lua
