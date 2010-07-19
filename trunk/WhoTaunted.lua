@@ -97,8 +97,8 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 		if (WhoTaunted.db.profile.Disabled == false) and (BgDisable == false) and (UnitIsPlayer(Name)) and ((UnitInParty("player")) or (UnitInRaid("player"))) and ((UnitInParty(Name)) or (UnitInRaid(Name))) then
 			local OutputMessage = nil;
 			local IsTaunt, TauntType;
-			if (Event == "SPELL_AURA_APPLIED") then				
-				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);				
+			if (Event == "SPELL_AURA_APPLIED") then
+				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
 				if (not Target) or (not IsTaunt) or (TauntType ~= TauntTypes.Normal) or (WhoTaunted.db.profile.AnounceTaunts == false) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
 					return;
 				end
@@ -112,7 +112,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				else
 					OutputMessage = OutputMessage..".";
 				end
-			elseif (Event == "SPELL_CAST_SUCCESS") then					
+			elseif (Event == "SPELL_CAST_SUCCESS") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
 				if (not IsTaunt) or (TauntType ~= TauntTypes.AOE) or (WhoTaunted.db.profile.AnounceAOETaunts == false) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
 					return;
@@ -236,7 +236,7 @@ function WhoTaunted:GetOutputType(TauntType)
 	local OutputType = "print";
 	if (TauntType == TauntTypes.Normal) then
 		OutputType = WhoTaunted.db.profile.AnounceTauntsOutput;
-	elseif (TauntType == TauntTypes.AOE) then		
+	elseif (TauntType == TauntTypes.AOE) then
 		OutputType = WhoTaunted.db.profile.AnounceAOETauntsOutput;
 	elseif (TauntType == TauntTypes.Failed) then
 		OutputType = WhoTaunted.db.profile.AnounceFailsOutput;
