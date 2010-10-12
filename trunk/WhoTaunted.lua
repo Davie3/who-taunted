@@ -9,7 +9,6 @@ local TauntsList = {
 	SingleTarget = {
 		--Warrior
 		355, --Taunt
-		694, --Mocking Blow
 
 		--Death Knight
 		49576, --Death Grip
@@ -70,12 +69,8 @@ function WhoTaunted:OnDisable()
 	WhoTaunted:UnregisterAllEvents();
 end
 
-function WhoTaunted:UpdateChatWindowsOnEvent()
+function WhoTaunted:UpdateChatWindowsOnEvent(event, ...)
 	WhoTaunted:UpdateChatWindows();
-end
-
-function WhoTaunted:ChatCommand()
-	InterfaceOptionsFrame_OpenToCategory(L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
 end
 
 function WhoTaunted:CombatLog(self, event, ...)
@@ -83,13 +78,17 @@ function WhoTaunted:CombatLog(self, event, ...)
 	WhoTaunted:DisplayTaunt(arg1, arg3, arg8, arg6, arg11);
 end
 
-function WhoTaunted:EnteringWorldOnEvent()
+function WhoTaunted:EnteringWorldOnEvent(event, ...)
 	local inInstance, instanceType = IsInInstance();
 	if (inInstance == 1) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
 		BgDisable = true;
 	else
 		BgDisable = false;
 	end
+end
+
+function WhoTaunted:ChatCommand()
+	InterfaceOptionsFrame_OpenToCategory(L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
 end
 
 function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
@@ -209,15 +208,13 @@ function WhoTaunted:OutPut(msg, output, dest)
 	if (msg) then
 		if (string.lower(output) == "raid") then
 			local isInRaid = UnitInRaid("player");
-			if (isInRaid) then
-				if (isInRaid >= 1) then
-					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
-				end
+			if (isInRaid) and (isInRaid >= 1) and (GetNumRaidMembers() >= 1) then
+				ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
 			end
 		elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
 			local isInRaid = UnitInRaid("player");
-			if (isInRaid) then
-				if (isInRaid >= 1) and ((IsRaidLeader()) or (IsRaidOfficer())) then
+			if (isInRaid) and (isInRaid >= 1) and (GetNumRaidMembers() >= 1) then
+				if (IsRaidLeader()) or (IsRaidOfficer()) then
 					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID_WARNING");
 				else
 					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
@@ -225,10 +222,8 @@ function WhoTaunted:OutPut(msg, output, dest)
 			end
 		elseif (string.lower(output) == "party") then
 			local isInParty = UnitInParty("player");
-			if (isInParty) then
-				if (isInParty >= 1) then
-					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "PARTY");
-				end
+			if (isInParty) and (isInParty >= 1) and (GetNumPartyMembers() >= 1) then
+				ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "PARTY");
 			end
 		elseif (string.lower(output) == "say") then
 			ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "SAY");

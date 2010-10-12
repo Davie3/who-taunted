@@ -107,7 +107,6 @@ WhoTaunted.options = {
 		Announcements = {
 			name = L["Announcements"],
 			type = "group",
-			--guiInline = true,
 			disabled = false,
 			order = 40,
 			args = {
@@ -122,14 +121,6 @@ WhoTaunted.options = {
 				},
 				AnounceTauntsOutput = {
 					type = "select",
-					--values = {
-						--[1] = L["Self"],
-						--[2] = L["Party"],
-						--[3] = L["Raid"],
-						--[4] = L["Raid Warning"],
-						--[5] = L["Say"],
-						--[6] = L["Yell"],
-					--},
 					values = WhoTaunted.OutputTypes,
 					name = L["Anounce Taunts Output:"],
 					desc = L["Where taunts will be announced."],
@@ -149,14 +140,6 @@ WhoTaunted.options = {
 				},
 				AnounceAOETauntsOutput = {
 					type = "select",
-					--values = {
-						--[1] = L["Self"],
-						--[2] = L["Party"],
-						--[3] = L["Raid"],
-						--[4] = L["Raid Warning"],
-						--[5] = L["Say"],
-						--[6] = L["Yell"],
-					--},
 					values = WhoTaunted.OutputTypes,
 					name = L["Anounce AOE Taunts Output:"],
 					desc = L["Where AOE Taunts will be announced."],
@@ -176,14 +159,6 @@ WhoTaunted.options = {
 				},
 				AnounceFailsOutput = {
 					type = "select",
-					--values = {
-						--[1] = L["Self"],
-						--[2] = L["Party"],
-						--[3] = L["Raid"],
-						--[4] = L["Raid Warning"],
-						--[5] = L["Say"],
-						--[6] = L["Yell"],
-					--},
 					values = WhoTaunted.OutputTypes,
 					name = L["Anounce Fails Output:"],
 					desc = L["Where the taunt fails will be announced."],
