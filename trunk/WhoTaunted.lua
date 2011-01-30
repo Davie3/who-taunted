@@ -22,6 +22,9 @@ local TauntsList = {
 
 		--Hunter
 		20736, --Distracting Shot
+
+		--Shaman
+		73684, --Unleash Earth
 	},
 	AOE = {
 		--Warrior
