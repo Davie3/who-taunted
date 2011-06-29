@@ -76,8 +76,8 @@ function WhoTaunted:UpdateChatWindowsOnEvent(event, ...)
 	WhoTaunted:UpdateChatWindows();
 end
 function WhoTaunted:CombatLog(self, event, ...)
-	local subevent, hideCaster, srcGUID, srcname, srcflags, dstGUID, dstname, dstflags, spellID, spellname, spellschool, extraspellID, extraspellname, extraspellschool, auratype = select(1, ...);
-	WhoTaunted:DisplayTaunt(subevent, srcname, spellID, dstname, extraspellID);
+	local subEvent, hideCaster, srcGUID, srcName, srcFlags, srcFlags2, dstGUID, dstName, dstFlags, dstFlags2, spellID, spellName, spellSchool, extraSpellID, extraSpellName, extraSpellSchool, auraType = select(1, ...);
+	WhoTaunted:DisplayTaunt(subEvent, srcName, spellID, dstName, extraSpellID);
 end
 
 function WhoTaunted:EnteringWorldOnEvent(event, ...)
