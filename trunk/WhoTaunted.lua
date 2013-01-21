@@ -1,4 +1,4 @@
-﻿WhoTaunted = LibStub("AceAddon-3.0"):NewAddon("WhoTaunted", "AceEvent-3.0", "AceConsole-3.0")
+﻿WhoTaunted = LibStub("AceAddon-3.0"):NewAddon("WhoTaunted", "AceEvent-3.0", "AceConsole-3.0", "AceTimer-3.0")
 local AceConfig = LibStub("AceConfigDialog-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 
@@ -25,6 +25,9 @@ local TauntsList = {
 
 		--Shaman
 		73684, --Unleash Earth
+		
+		--Monk
+		115546, --Provoke
 	},
 	AOE = {
 		--Warrior
@@ -65,6 +68,11 @@ function WhoTaunted:OnEnable()
 		WhoTaunted.db.profile.AnounceTauntsOutput = WhoTaunted.OutputTypes.Self;
 		WhoTaunted.db.profile.AnounceAOETauntsOutput = WhoTaunted.OutputTypes.Self;
 		WhoTaunted.db.profile.AnounceFailsOutput = WhoTaunted.OutputTypes.Self;
+	end
+	
+	if (not WhoTaunted.db.profile.Onedot1dot5FirstRun) then
+		WhoTaunted:ScheduleTimer(function(self, event, ...) WhoTaunted:Print("|c00FF0000This addon is now updated to support Monk taunts for Mists of Pandaria! My thanks to Basta from Curse for updating a few lines of code for me. I apologize for taking my good old time updating. Enjoy! -Davie3 (Author)|r"); end, 8);
+		WhoTaunted.db.profile.Onedot1dot5FirstRun = true;
 	end
 end
 
@@ -148,7 +156,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				end
 			elseif (Event == "SPELL_MISSED") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
-				--Death Grip is different in that it kind of has 2 effects. It taunts then attempts pull the mob to you.
+				--Death Grip is different in that it kind of has 2 effects. It taunts then attempts to pull the mob to you.
 				--This causes 2 different events and with most mobs immuned to Death Grip's pull effect but not its taunt
 				--WhoTaunted starts to get spammy with successful Death Grip taunts then immuned ones.
 				if (not Target) or (not FailType) or (not IsTaunt) or (TauntType ~= TauntTypes.Normal) or (WhoTaunted.db.profile.AnounceFails == false) or ((GetSpellInfo(ID) == GetSpellInfo(49576)) and (string.lower(tostring(FailType)) == string.lower(ACTION_SPELL_MISSED_IMMUNE))) or ((WhoTaunted.db.profile.HideOwnFailedTaunts == true) and (Name == PlayerName)) then
@@ -329,6 +337,8 @@ function WhoTaunted:GetClassColor(Unit)
 				ClassColor = "00ABD473";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["MAGE"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["MAGE"])) then
 				ClassColor = "0069CCF0";
+			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["MONK"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["MONK"])) then
+				ClassColor = "0000FF96";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["PALADIN"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["PALADIN"])) then
 				ClassColor = "00F58CBA";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["PRIEST"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["PRIEST"])) then
