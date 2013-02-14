@@ -217,13 +217,11 @@ function WhoTaunted:OutPut(msg, output, dest)
 	end
 	if (msg) then
 		if (string.lower(output) == "raid") then
-			local isInRaid = UnitInRaid("player");
-			if (isInRaid) and (isInRaid >= 1) and (GetNumRaidMembers() >= 1) then
+			if (IsInRaid()) and (GetNumGroupMembers() >= 1) then
 				ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID");
 			end
 		elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
-			local isInRaid = UnitInRaid("player");
-			if (isInRaid) and (isInRaid >= 1) and (GetNumRaidMembers() >= 1) then
+			if (IsInRaid()) and (GetNumGroupMembers() >= 1) then
 				if (IsRaidLeader()) or (IsRaidOfficer()) then
 					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID_WARNING");
 				else
@@ -232,7 +230,7 @@ function WhoTaunted:OutPut(msg, output, dest)
 			end
 		elseif (string.lower(output) == "party") then
 			local isInParty = UnitInParty("player");
-			if (isInParty) and (isInParty >= 1) and (GetNumPartyMembers() >= 1) then
+			if (isInParty) and (isInParty >= 1) and (GetNumSubgroupMembers() >= 1) then
 				ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "PARTY");
 			end
 		elseif (string.lower(output) == "say") then
