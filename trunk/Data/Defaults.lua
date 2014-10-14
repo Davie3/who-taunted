@@ -16,6 +16,5 @@ WhoTaunted.defaults = {
 		AnounceAOETauntsOutput = WhoTaunted.OutputTypes.Self,
 		AnounceFails = true,
 		AnounceFailsOutput = WhoTaunted.OutputTypes.Self,
-		Onedot1dot5FirstRun = false,
 	},
 }

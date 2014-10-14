@@ -11,7 +11,7 @@ local TauntsList = {
 		355, --Taunt
 
 		--Death Knight
-		49576, --Death Grip
+		49576, --Death Grip (without Glyph of Tranquil Grip)
 		56222, --Dark Command
 
 		--Paladin
@@ -22,25 +22,16 @@ local TauntsList = {
 
 		--Hunter
 		20736, --Distracting Shot
-
-		--Shaman
-		73684, --Unleash Earth
 		
 		--Monk
 		115546, --Provoke
 	},
 	AOE = {
 		--Warrior
-		1161, --Challenging Shout
+		114192, --Mocking Banner
 
 		--Paladin
 		31789, --Righteous Defense
-
-		--Druid
-		5209, --Challenging Roar
-
-		--Warlock
-		59671, --Challenging Howl
 	},
 };
 local TauntTypes = {
@@ -68,11 +59,6 @@ function WhoTaunted:OnEnable()
 		WhoTaunted.db.profile.AnounceTauntsOutput = WhoTaunted.OutputTypes.Self;
 		WhoTaunted.db.profile.AnounceAOETauntsOutput = WhoTaunted.OutputTypes.Self;
 		WhoTaunted.db.profile.AnounceFailsOutput = WhoTaunted.OutputTypes.Self;
-	end
-	
-	if (not WhoTaunted.db.profile.Onedot1dot5FirstRun) then
-		WhoTaunted:ScheduleTimer(function(self, event, ...) WhoTaunted:Print("|c00FF0000This addon is now updated to support Monk taunts for Mists of Pandaria! My thanks to Basta from Curse for updating a few lines of code for me. I apologize for taking my good old time updating. Enjoy! -Davie3 (Author)|r"); end, 8);
-		WhoTaunted.db.profile.Onedot1dot5FirstRun = true;
 	end
 end
 
