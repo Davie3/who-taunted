@@ -1,0 +1,4 @@
+package-as: WhoTaunted
+
+externals:
+    Libs/Ace3: svn://svn.wowace.com/wow/ace3/mainline/trunk
