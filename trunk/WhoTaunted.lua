@@ -76,7 +76,7 @@ end
 
 function WhoTaunted:EnteringWorldOnEvent(event, ...)
 	local inInstance, instanceType = IsInInstance();
-	if (inInstance == 1) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
+	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
 		BgDisable = true;
 	else
 		BgDisable = false;
