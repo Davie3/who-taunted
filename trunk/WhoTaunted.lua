@@ -86,7 +86,6 @@ function WhoTaunted:EnteringWorldOnEvent(event, ...)
 	local inInstance, instanceType = IsInInstance();
 	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then		
 		BgDisable = true;
-		WhoTaunted:Print("BgDisable: "..tostring(BgDisable));
 	else
 		BgDisable = false;
 	end
@@ -96,7 +95,6 @@ function WhoTaunted:ZoneChangedOnEvent(event, ...)
 	local mapID, isContinent = GetCurrentMapAreaID();
 	if (WhoTaunted:IsPvPZone(mapID) == true) and (WhoTaunted.db.profile.DisableInPvPZone == true) then		
 		DisableInPvPZone = true;
-		WhoTaunted:Print("DisableInPvPZone: "..tostring(DisableInPvPZone));
 	else
 		DisableInPvPZone = false;
 	end
