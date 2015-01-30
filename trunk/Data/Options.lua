@@ -47,6 +47,18 @@ WhoTaunted.options = {
 					end,
 					order = 10
 				},
+				DisableInPvPZone = {
+					type = "toggle",
+					name = L["Disable Who Taunted? in PvP Zones"],
+					desc = L["Disables Who Taunted? while you are in PvP Zones such as Ashran."],
+					width = "full",
+					get = function(info) return WhoTaunted.db.profile.DisableInPvPZone; end,
+					set = function(info, v)
+						WhoTaunted.db.profile.DisableInPvPZone = v;
+						WhoTaunted:ZoneChangedOnEvent();
+					end,
+					order = 10
+				},
 				ChatWindow = {
 					type = "select",
 					values = WhoTaunted:GetChatWindows(),

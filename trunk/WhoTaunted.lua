@@ -4,6 +4,7 @@ local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 
 local PlayerName, PlayerRealm = UnitName("player");
 local BgDisable = false;
+local DisableInPvPZone = false;
 local TauntData = {};
 local TauntsList = {
 	SingleTarget = {
@@ -39,9 +40,16 @@ local TauntTypes = {
 	AOE = "AOE",
 	Failed = "Failed",
 };
+local PvPZoneIDs = {
+	978, --Ashran,
+	501, --Wintergrasp,
+	708, --Tol Barad
+	709, --Tol Barad Peninsula
+};
 
 function WhoTaunted:OnInitialize()
 	WhoTaunted:RegisterEvent("PLAYER_ENTERING_WORLD", "EnteringWorldOnEvent")
+	WhoTaunted:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZoneChangedOnEvent")
 	WhoTaunted:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLog")
 	WhoTaunted:RegisterEvent("UPDATE_CHAT_WINDOWS", "UpdateChatWindowsOnEvent")
 
@@ -76,10 +84,21 @@ end
 
 function WhoTaunted:EnteringWorldOnEvent(event, ...)
 	local inInstance, instanceType = IsInInstance();
-	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
+	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then		
 		BgDisable = true;
+		WhoTaunted:Print("BgDisable: "..tostring(BgDisable));
 	else
 		BgDisable = false;
+	end
+end
+
+function WhoTaunted:ZoneChangedOnEvent(event, ...)
+	local mapID, isContinent = GetCurrentMapAreaID();
+	if (WhoTaunted:IsPvPZone(mapID) == true) and (WhoTaunted.db.profile.DisableInPvPZone == true) then		
+		DisableInPvPZone = true;
+		WhoTaunted:Print("DisableInPvPZone: "..tostring(DisableInPvPZone));
+	else
+		DisableInPvPZone = false;
 	end
 end
 
@@ -89,7 +108,7 @@ end
 
 function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 	if (Event) and (Name) and (ID) then
-		if (WhoTaunted.db.profile.Disabled == false) and (BgDisable == false) and (UnitIsPlayer(Name)) and ((UnitInParty("player")) or (UnitInRaid("player"))) and ((UnitInParty(Name)) or (UnitInRaid(Name))) then
+		if (WhoTaunted.db.profile.Disabled == false) and (BgDisable == false) and (DisableInPvPZone == false) and (UnitIsPlayer(Name)) and ((UnitInParty("player")) or (UnitInRaid("player"))) and ((UnitInParty(Name)) or (UnitInRaid(Name))) then
 			local OutputMessage = nil;
 			local IsTaunt, TauntType;
 			local OutputType;
@@ -195,6 +214,19 @@ function WhoTaunted:IsTaunt(Spell)
 		end
 	end
 	return IsTaunt, TauntType;
+end
+
+function WhoTaunted:IsPvPZone(MapID)
+	local IsPvPZone = false;
+	if (MapID) and (type(MapID) == "number") then	
+		for k, v in pairs(PvPZoneIDs) do
+			if (MapID == v) then
+				IsPvPZone = true;
+				break;
+			end
+		end
+	end
+	return IsPvPZone;
 end
 
 function WhoTaunted:OutPut(msg, output, dest)
