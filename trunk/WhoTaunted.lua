@@ -26,6 +26,9 @@ local TauntsList = {
 		
 		--Monk
 		115546, --Provoke
+		
+		--Demon Hunter
+		185245,
 	},
 	AOE = {
 		--Warrior
@@ -59,7 +62,7 @@ function WhoTaunted:OnInitialize()
 
 	WhoTaunted.db = LibStub("AceDB-3.0"):New("WhoTauntedDB", WhoTaunted.defaults, "profile");
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("WhoTaunted", WhoTaunted.options)
-	AceConfig:AddToBlizOptions("WhoTaunted", L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
+	AceConfig:AddToBlizOptions("WhoTaunted", L["Who Taunted?"]);
 end
 
 function WhoTaunted:OnEnable()
@@ -159,7 +162,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				end
 			elseif (Event == "SPELL_MISSED") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
-				--Death Grip is different in that it kind of has 2 effects. It taunts then attempts to pull the mob to you.
+				--Death Grip (49576) is different in that it kind of has 2 effects. It taunts then attempts to pull the mob to you.
 				--This causes 2 different events and with most mobs immuned to Death Grip's pull effect but not its taunt
 				--WhoTaunted starts to get spammy with successful Death Grip taunts then immuned ones.
 				if (not Target) or (not FailType) or (not IsTaunt) or (TauntType ~= TauntTypes.Normal) or (WhoTaunted.db.profile.AnounceFails == false) or ((GetSpellInfo(ID) == GetSpellInfo(49576)) and (string.lower(tostring(FailType)) == string.lower(ACTION_SPELL_MISSED_IMMUNE))) or ((WhoTaunted.db.profile.HideOwnFailedTaunts == true) and (Name == PlayerName)) then
@@ -363,6 +366,8 @@ function WhoTaunted:GetClassColor(Unit)
 				ClassColor = "00FFFFFF";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["ROGUE"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["ROGUE"])) then
 				ClassColor = "00FFF569";
+				elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["DEMONHUNTER"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["DEMONHUNTER"])) then
+				ClassColor = "00A330C9";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["SHAMAN"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["SHAMAN"])) then
 				ClassColor = "002459FF";
 			elseif (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_MALE["WARLOCK"])) or (string.lower(localizedclass) == string.lower(LOCALIZED_CLASS_NAMES_FEMALE["WARLOCK"])) then
