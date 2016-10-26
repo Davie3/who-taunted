@@ -11,7 +11,7 @@ WhoTaunted.OutputTypes = {
 };
 
 WhoTaunted.options = {
-	name = L["Who Taunted?"],
+	name = "Who Taunted?",
 	type = 'group',
 	args = {
 		Intro = {

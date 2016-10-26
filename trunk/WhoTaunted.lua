@@ -62,7 +62,7 @@ function WhoTaunted:OnInitialize()
 
 	WhoTaunted.db = LibStub("AceDB-3.0"):New("WhoTauntedDB", WhoTaunted.defaults, "profile");
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("WhoTaunted", WhoTaunted.options)
-	AceConfig:AddToBlizOptions("WhoTaunted", L["Who Taunted?"]);
+	AceConfig:AddToBlizOptions("WhoTaunted", "Who Taunted?");
 end
 
 function WhoTaunted:OnEnable()
@@ -104,7 +104,7 @@ function WhoTaunted:ZoneChangedOnEvent(event, ...)
 end
 
 function WhoTaunted:ChatCommand()
-	InterfaceOptionsFrame_OpenToCategory(L["Who Taunted?"].." v"..GetAddOnMetadata("WhoTaunted", "Version"));
+	InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
 end
 
 function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
