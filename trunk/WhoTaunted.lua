@@ -6,13 +6,14 @@ local PlayerName, PlayerRealm = UnitName("player");
 local BgDisable = false;
 local DisableInPvPZone = false;
 local TauntData = {};
+local RecentTaunts = {};
 local TauntsList = {
 	SingleTarget = {
 		--Warrior
 		355, --Taunt
 
 		--Death Knight
-		49576, --Death Grip (without Glyph of Tranquil Grip)
+		51399, --Death Grip for Blood (49576 is now just the pull effect)
 		56222, --Dark Command
 
 		--Paladin
@@ -23,19 +24,19 @@ local TauntsList = {
 
 		--Hunter
 		20736, --Distracting Shot
-		
+
 		--Monk
 		115546, --Provoke
-		
+
 		--Demon Hunter
-		185245,
+		185245, --Torment
 	},
 	AOE = {
 		--Warrior
 		114192, --Mocking Banner
 
 		--Paladin
-		31789, --Righteous Defense
+		204079, --Final Stand
 	},
 };
 local TauntTypes = {
@@ -52,6 +53,7 @@ local PvPZoneIDs = {
 
 function WhoTaunted:OnInitialize()
 	WhoTaunted:RegisterEvent("PLAYER_ENTERING_WORLD", "EnteringWorldOnEvent")
+	WhoTaunted:RegisterEvent("PLAYER_REGEN_ENABLED", "RegenEnabledOnEvent")
 	WhoTaunted:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZoneChangedOnEvent")
 	WhoTaunted:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLog")
 	WhoTaunted:RegisterEvent("UPDATE_CHAT_WINDOWS", "UpdateChatWindowsOnEvent")
@@ -75,6 +77,7 @@ end
 
 function WhoTaunted:OnDisable()
 	WhoTaunted:UnregisterAllEvents();
+	WhoTaunted:ClearRecentTaunts();
 end
 
 function WhoTaunted:UpdateChatWindowsOnEvent(event, ...)
@@ -82,21 +85,26 @@ function WhoTaunted:UpdateChatWindowsOnEvent(event, ...)
 end
 function WhoTaunted:CombatLog(self, event, ...)
 	local subEvent, hideCaster, srcGUID, srcName, srcFlags, srcFlags2, dstGUID, dstName, dstFlags, dstFlags2, spellID, spellName, spellSchool, extraSpellID, extraSpellName, extraSpellSchool, auraType = select(1, ...);
-	WhoTaunted:DisplayTaunt(subEvent, srcName, spellID, dstName, extraSpellID);
+	WhoTaunted:DisplayTaunt(subEvent, srcName, spellID, dstName, extraSpellID, GetServerTime());
 end
 
 function WhoTaunted:EnteringWorldOnEvent(event, ...)
 	local inInstance, instanceType = IsInInstance();
-	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then		
+	if (inInstance == true) and (instanceType == "pvp") and (WhoTaunted.db.profile.DisableInBG == true) then
 		BgDisable = true;
 	else
 		BgDisable = false;
 	end
+	WhoTaunted:ClearRecentTaunts();
+end
+
+function WhoTaunted:RegenEnabledOnEvent(event, ...)
+	WhoTaunted:ClearRecentTaunts();
 end
 
 function WhoTaunted:ZoneChangedOnEvent(event, ...)
 	local mapID, isContinent = GetCurrentMapAreaID();
-	if (WhoTaunted:IsPvPZone(mapID) == true) and (WhoTaunted.db.profile.DisableInPvPZone == true) then		
+	if (WhoTaunted:IsPvPZone(mapID) == true) and (WhoTaunted.db.profile.DisableInPvPZone == true) then
 		DisableInPvPZone = true;
 	else
 		DisableInPvPZone = false;
@@ -107,15 +115,21 @@ function WhoTaunted:ChatCommand()
 	InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
 end
 
-function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
-	if (Event) and (Name) and (ID) then
+function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType, Time)
+	if (Event) and (Name) and (ID) and (Time) and (WhoTaunted:IsRecentTaunt(Name, ID, Time) == false) then
 		if (WhoTaunted.db.profile.Disabled == false) and (BgDisable == false) and (DisableInPvPZone == false) and (UnitIsPlayer(Name)) and ((UnitInParty("player")) or (UnitInRaid("player"))) and ((UnitInParty(Name)) or (UnitInRaid(Name))) then
 			local OutputMessage = nil;
 			local IsTaunt, TauntType;
 			local OutputType;
+
+			--Ignore Death Grip Pull Effect for non-Blood Specs
+			if (ID == 49576) then
+				return;
+			end
+
 			if (Event == "SPELL_AURA_APPLIED") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
-				if (not Target) or (not IsTaunt) or (TauntType ~= TauntTypes.Normal) or (WhoTaunted.db.profile.AnounceTaunts == false) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
+				if (not Target) or (not IsTaunt) or ((TauntType == TauntTypes.Normal) and (WhoTaunted.db.profile.AnounceTaunts == false)) or ((TauntType == TauntTypes.AOE) and (WhoTaunted.db.profile.AnounceAOETaunts == false)) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
 					return;
 				end
 				OutputType = WhoTaunted:GetOutputType(TauntType);
@@ -123,21 +137,15 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				if (not Spell) then
 					Spell = GetSpellInfo(ID);
 				end
-				OutputMessage = "lc1"..Name.."lr1 "..L["taunted"].." "..Target;
-				if (WhoTaunted.db.profile.DisplayAbility == true) then
-					OutputMessage = OutputMessage.." "..L["using"].." "..Spell..".";
-				else
-					OutputMessage = OutputMessage..".";
-				end
 
-				if (OutputType == WhoTaunted.OutputTypes.Self) then
-					OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r");
-				else
-					OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", "");
+				if (TauntType == TauntTypes.Normal) then
+					OutputMessage = WhoTaunted:OutputMessageNormal(Name, Target, Spell, OutputType);
+				elseif (TauntType == TauntTypes.AOE) then
+					OutputMessage = WhoTaunted:OutputMessageAOE(Name, Target, Spell, ID, OutputType);
 				end
 			elseif (Event == "SPELL_CAST_SUCCESS") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
-				if (not IsTaunt) or (TauntType ~= TauntTypes.AOE) or (WhoTaunted.db.profile.AnounceAOETaunts == false) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
+				if (not Target) or (not IsTaunt) or (TauntType == TauntTypes.Normal) or ((TauntType == TauntTypes.AOE) and (WhoTaunted.db.profile.AnounceAOETaunts == false)) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
 					return;
 				end
 				OutputType = WhoTaunted:GetOutputType(TauntType);
@@ -145,27 +153,15 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				if (not Spell) then
 					Spell = GetSpellInfo(ID);
 				end
-				OutputMessage = "lc1"..Name.."lr1 "..L["AOE"].." "..L["taunted"];
-				if (Target) and (GetSpellInfo(ID) == GetSpellInfo(31789)) and (WhoTaunted.db.profile.RighteousDefenseTarget == true) then
-					OutputMessage = OutputMessage.." "..L["off of"].." lc2"..Target.."lr2";
-				end
-				if (WhoTaunted.db.profile.DisplayAbility == true) then
-					OutputMessage = OutputMessage.." "..L["using"].." "..Spell..".";
-				else
-					OutputMessage = OutputMessage..".";
-				end
 
-				if (OutputType == WhoTaunted.OutputTypes.Self) then
-					OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r"):gsub("lc2", "|c"..WhoTaunted:GetClassColor(Target)):gsub("lr2", "|r");
-				else
-					OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", ""):gsub("lc2", ""):gsub("lr2", "");
+				if (TauntType == TauntTypes.Normal) then
+					OutputMessage = WhoTaunted:OutputMessageNormal(Name, Target, Spell, OutputType);
+				elseif (TauntType == TauntTypes.AOE) then
+					OutputMessage = WhoTaunted:OutputMessageAOE(Name, Target, Spell, ID, OutputType);
 				end
 			elseif (Event == "SPELL_MISSED") then
 				IsTaunt, TauntType = WhoTaunted:IsTaunt(ID);
-				--Death Grip (49576) is different in that it kind of has 2 effects. It taunts then attempts to pull the mob to you.
-				--This causes 2 different events and with most mobs immuned to Death Grip's pull effect but not its taunt
-				--WhoTaunted starts to get spammy with successful Death Grip taunts then immuned ones.
-				if (not Target) or (not FailType) or (not IsTaunt) or (TauntType ~= TauntTypes.Normal) or (WhoTaunted.db.profile.AnounceFails == false) or ((GetSpellInfo(ID) == GetSpellInfo(49576)) and (string.lower(tostring(FailType)) == string.lower(ACTION_SPELL_MISSED_IMMUNE))) or ((WhoTaunted.db.profile.HideOwnFailedTaunts == true) and (Name == PlayerName)) then
+				if (not Target) or (not FailType) or (not IsTaunt) or ((TauntType == TauntTypes.Normal) and (WhoTaunted.db.profile.AnounceTaunts == false)) or ((TauntType == TauntTypes.AOE) and (WhoTaunted.db.profile.AnounceAOETaunts == false)) or ((WhoTaunted.db.profile.HideOwnTaunts == true) and (Name == PlayerName)) then
 					return;
 				end
 				TauntType = TauntTypes.Failed;
@@ -174,17 +170,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 				if (not Spell) then
 					Spell = GetSpellInfo(ID);
 				end
-				OutputMessage = "lc1"..Name..L["'s"].."lr1 "..L["taunt"];
-				if (WhoTaunted.db.profile.DisplayAbility == true) then
-					OutputMessage = OutputMessage.." "..Spell;
-				end
-				OutputMessage = OutputMessage.." "..L["against"].." "..Target.." lc2"..string.upper(L["Failed:"].." "..FailType).."lr2!";
-
-				if (OutputType == WhoTaunted.OutputTypes.Self) then
-					OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r"):gsub("lc2", "|c00FF0000"):gsub("lr2", "|r");
-				else
-					OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", ""):gsub("lc2", ""):gsub("lr2", "");
-				end
+				OutputMessage = WhoTaunted:OutputMessageFailed(Name, Target, Spell, ID, OutputType, FailType);
 			else
 				return;
 			end
@@ -194,22 +180,23 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, Target, FailType)
 						OutputMessage = L["<WhoTaunted>"].." "..OutputMessage;
 					end
 				end
+				WhoTaunted:AddRecentTaunt(Name, ID, Time);
 				WhoTaunted:OutPut(OutputMessage:trim(), OutputType);
 			end
 		end
 	end
 end
 
-function WhoTaunted:IsTaunt(Spell)
+function WhoTaunted:IsTaunt(SpellID)
 	local IsTaunt, TauntType = false, "";
 	for k, v in pairs(TauntsList.SingleTarget) do
-		if (GetSpellInfo(v) == GetSpellInfo(Spell)) then
+		if (GetSpellInfo(v) == GetSpellInfo(SpellID)) then
 			IsTaunt, TauntType = true, TauntTypes.Normal;
 			break;
 		end
 	end
 	for k, v in pairs(TauntsList.AOE) do
-		if (GetSpellInfo(v) == GetSpellInfo(Spell)) then
+		if (GetSpellInfo(v) == GetSpellInfo(SpellID)) then
 			IsTaunt, TauntType = true, TauntTypes.AOE;
 			break;
 		end
@@ -219,7 +206,7 @@ end
 
 function WhoTaunted:IsPvPZone(MapID)
 	local IsPvPZone = false;
-	if (MapID) and (type(MapID) == "number") then	
+	if (MapID) and (type(MapID) == "number") then
 		for k, v in pairs(PvPZoneIDs) do
 			if (MapID == v) then
 				IsPvPZone = true;
@@ -228,6 +215,91 @@ function WhoTaunted:IsPvPZone(MapID)
 		end
 	end
 	return IsPvPZone;
+end
+
+function WhoTaunted:AddRecentTaunt(TauntName, TauntID, TauntTime)
+	if (TauntName) and (TauntID) and (TauntTime) and (type(TauntTime) == "number") then
+		table.insert(RecentTaunts,{
+			Name = TauntName,
+			ID = TauntID,
+			TimeStamp = TauntTime,
+		});
+	end
+end
+
+function WhoTaunted:IsRecentTaunt(TauntName, TauntID, TauntTime)
+	local IsRecentTaunt = false;
+
+	if (TauntName) and (TauntID) and (TauntTime) and (type(TauntTime) == "number") then
+		for k, v in pairs(RecentTaunts) do
+			if (RecentTaunts[k].Name == TauntName) and (GetSpellInfo(RecentTaunts[k].ID) == GetSpellInfo(TauntID)) and (RecentTaunts[k].TimeStamp == TauntTime) then
+				IsRecentTaunt = true;
+				break;
+			end
+		end
+	end
+
+	return IsRecentTaunt;
+end
+
+function WhoTaunted:ClearRecentTaunts()
+	RecentTaunts = table.wipe(RecentTaunts);
+end
+
+function WhoTaunted:OutputMessageNormal(Name, Target, Spell, OutputType)
+	local OutputMessage = nil;
+
+	OutputMessage = "lc1"..Name.."lr1 "..L["taunted"].." "..Target;
+	if (WhoTaunted.db.profile.DisplayAbility == true) then
+		OutputMessage = OutputMessage.." "..L["using"].." "..Spell..".";
+	else
+		OutputMessage = OutputMessage..".";
+	end
+
+	if (OutputType == WhoTaunted.OutputTypes.Self) then
+		OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r");
+	else
+		OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", "");
+	end
+
+	return OutputMessage;
+end
+
+function WhoTaunted:OutputMessageAOE(Name, Target, Spell, ID, OutputType)
+	local OutputMessage = nil;
+
+	OutputMessage = "lc1"..Name.."lr1 "..L["AOE"].." "..L["taunted"];
+	if (WhoTaunted.db.profile.DisplayAbility == true) then
+		OutputMessage = OutputMessage.." "..L["using"].." "..Spell..".";
+	else
+		OutputMessage = OutputMessage..".";
+	end
+
+	if (OutputType == WhoTaunted.OutputTypes.Self) then
+		OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r"):gsub("lc2", "|c"..WhoTaunted:GetClassColor(Target)):gsub("lr2", "|r");
+	else
+		OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", ""):gsub("lc2", ""):gsub("lr2", "");
+	end
+
+	return OutputMessage;
+end
+
+function WhoTaunted:OutputMessageFailed(Name, Target, Spell, ID, OutputType, FailType)
+	local OutputMessage = nil;
+
+	OutputMessage = "lc1"..Name..L["'s"].."lr1 "..L["taunt"];
+	if (WhoTaunted.db.profile.DisplayAbility == true) then
+		OutputMessage = OutputMessage.." "..Spell;
+	end
+	OutputMessage = OutputMessage.." "..L["against"].." "..Target.." lc2"..string.upper(L["Failed:"].." "..FailType).."lr2!";
+
+	if (OutputType == WhoTaunted.OutputTypes.Self) then
+		OutputMessage = OutputMessage:gsub("lc1", "|c"..WhoTaunted:GetClassColor(Name)):gsub("lr1", "|r"):gsub("lc2", "|c00FF0000"):gsub("lr2", "|r");
+	else
+		OutputMessage = OutputMessage:gsub("lc1", ""):gsub("lr1", ""):gsub("lc2", ""):gsub("lr2", "");
+	end
+
+	return OutputMessage;
 end
 
 function WhoTaunted:OutPut(msg, output, dest)
@@ -242,7 +314,7 @@ function WhoTaunted:OutPut(msg, output, dest)
 		elseif (string.lower(output) == "raidwarning") or (string.lower(output) == "rw") then
 			if (IsInRaid()) and (GetNumGroupMembers() >= 1) then
 				local isLeader = UnitIsGroupLeader("player");
-				local isAssistant = UnitIsGroupAssistant("player");				
+				local isAssistant = UnitIsGroupAssistant("player");
 				if ((isLeader) and (isLeader == true)) or ((isAssistant) and (isAssistant == true)) then
 					ChatThrottleLib:SendChatMessage("NORMAL", "WhoTaunted", tostring(msg), "RAID_WARNING");
 				else

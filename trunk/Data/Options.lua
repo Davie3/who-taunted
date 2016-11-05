@@ -69,15 +69,6 @@ WhoTaunted.options = {
 					set = function(info, v) WhoTaunted.db.profile.ChatWindow = v; end,
 					order = 20
 				},
-				RighteousDefenseTarget = {
-					type = "toggle",
-					name = L["Show"].." "..GetSpellInfo(31789).." "..L["Target"],
-					desc = L["Show"].." "..LOCALIZED_CLASS_NAMES_MALE["PALADIN"].."'s".." "..GetSpellInfo(31789).." "..string.lower(L["Target"])..".",
-					width = "full",
-					get = function(info) return WhoTaunted.db.profile.RighteousDefenseTarget; end,
-					set = function(info, v) WhoTaunted.db.profile.RighteousDefenseTarget = v; end,
-					order = 30
-				},
 				HideOwnTaunts = {
 					type = "toggle",
 					name = L["Hide Own Taunts"],
