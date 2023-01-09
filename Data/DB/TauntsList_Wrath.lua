@@ -27,19 +27,6 @@ WhoTaunted.TauntsList = {
 		-- Paladin
 		62124, 			-- Hand of Reckoning
 
-		-- Shaman
-		2062, 			-- Earth Elemental Totem
-		5730, 			-- Stoneclaw Totem
-		6390, 			-- Stoneclaw Totem
-		6391, 			-- Stoneclaw Totem
-		6392, 			-- Stoneclaw Totem
-		10427,			-- Stoneclaw Totem
-		10428,			-- Stoneclaw Totem
-		25525,			-- Stoneclaw Totem
-		58580,			-- Stoneclaw Totem
-		58581,			-- Stoneclaw Totem
-		58582,			-- Stoneclaw Totem
-
 		-- Warlock Pet
 		-- 33699, 		-- Anguish
 		-- 47993, 		-- Anguish
@@ -68,6 +55,19 @@ WhoTaunted.TauntsList = {
 		-- Paladin
 		31789, 			-- Righteous Defense
 
+		-- Shaman
+		2062, 			-- Earth Elemental Totem
+		5730, 			-- Stoneclaw Totem
+		6390, 			-- Stoneclaw Totem
+		6391, 			-- Stoneclaw Totem
+		6392, 			-- Stoneclaw Totem
+		10427,			-- Stoneclaw Totem
+		10428,			-- Stoneclaw Totem
+		25525,			-- Stoneclaw Totem
+		58580,			-- Stoneclaw Totem
+		58581,			-- Stoneclaw Totem
+		58582,			-- Stoneclaw Totem
+
 		-- Warlock
 		59671, 			-- Challenging Howl
 
@@ -82,6 +82,6 @@ WhoTaunted.TauntsList = {
 		-- 47990, 		-- Suffering
 
 		-- Warrior
-		1161, 		-- Challenging Shout
+		1161, 			-- Challenging Shout
 	},
 };
