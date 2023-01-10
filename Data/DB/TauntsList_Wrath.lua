@@ -4,7 +4,6 @@ WhoTaunted.TauntsList = {
 	SingleTarget = {
 		-- Death Knight
 		49576, 			-- Death Grip
-		51399, 			-- Death Grip for Blood (49576 is now just the pull effect)
 		56222, 			-- Dark Command
 
 		-- Druid
@@ -14,15 +13,15 @@ WhoTaunted.TauntsList = {
 		20736, 			-- Distracting Shot
 
 		-- Hunter Pet
-		-- 2649, 			-- Growl
-		-- 61676, 			-- Growl
-		-- 14916, 			-- Growl
-		-- 14920, 			-- Growl
-		-- 14918, 			-- Growl
-		-- 14921, 			-- Growl
-		-- 27047, 			-- Growl
-		-- 14917, 			-- Growl
-		-- 14919, 			-- Growl
+		-- 2649, 		-- Growl
+		-- 61676, 		-- Growl
+		-- 14916, 		-- Growl
+		-- 14920, 		-- Growl
+		-- 14918, 		-- Growl
+		-- 14921, 		-- Growl
+		-- 27047, 		-- Growl
+		-- 14917, 		-- Growl
+		-- 14919, 		-- Growl
 
 		-- Paladin
 		62124, 			-- Hand of Reckoning
