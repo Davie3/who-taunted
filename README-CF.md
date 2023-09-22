@@ -5,9 +5,9 @@ Tracks player taunts and displays who they taunted, what ability they used to ta
 Latest WoW versions now supported!
 
 ### Mainline and Classic
-- Dragonflight (10.1.0)
-- Wrath (3.4.1)
-- Vanilla (1.14.3)
+- Dragonflight (10.1.7)
+- Wrath (3.4.2)
+- Vanilla (1.14.4)
 
 ### Legacy
 - Shadowlands (9.2.7)
@@ -24,6 +24,11 @@ Help localize here on Curseforge! - http://wow.curseforge.com/addons/who-taunted
 Feel free to post any of these right here! Please post any serious problems or bugs on GitHub - https://github.com/Davie3/who-taunted/issues
 
 ## Recent Change Log
+# [v2.0.11](https://www.curseforge.com/wow/addons/who-taunted/files/4762834)
+- 10.1.7 compatibility.
+- 3.4.2 Wrath Classic compatibility.
+- 1.14.4 Classic compatibility.
+
 # [v2.0.9](https://www.curseforge.com/wow/addons/who-taunted/files/4522705)
 - 10.1.0 compatibility.
 
