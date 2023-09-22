@@ -1,5 +1,5 @@
 ## Author: @project-author@
-## Interface: 11403
+## Interface: 11404
 ## Notes: Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
 ## OptionalDeps: Ace3
 ## SavedVariables: WhoTauntedDB
