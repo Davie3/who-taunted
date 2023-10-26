@@ -6,7 +6,7 @@ Latest WoW versions now supported!
 
 ### Mainline and Classic
 - Dragonflight (10.1.7)
-- Wrath (3.4.2)
+- Wrath (3.4.3)
 - Vanilla (1.14.4)
 
 ### Legacy
@@ -24,6 +24,9 @@ Help localize here on Curseforge! - http://wow.curseforge.com/addons/who-taunted
 Feel free to post any of these right here! Please post any serious problems or bugs on GitHub - https://github.com/Davie3/who-taunted/issues
 
 ## Recent Change Log
+# [v2.0.12](https://www.curseforge.com/wow/addons/who-taunted/files/4817033)
+- 3.4.3 Wrath Classic compatibility.
+
 # [v2.0.11](https://www.curseforge.com/wow/addons/who-taunted/files/4762834)
 - 10.1.7 compatibility.
 - 3.4.2 Wrath Classic compatibility.
