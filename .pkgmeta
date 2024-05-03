@@ -25,4 +25,3 @@ ignore:
     - .vscode
     - .gitignore
     - .github
-    - .old
