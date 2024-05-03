@@ -1,3 +1,8 @@
+v2.0.14:
+- 10.2.6 compatibility.
+- 4.4.0 Cataclysm Classic compatibility.
+- Removing the WhoTaunted_Vanilla TOC for now as WhoTaunted does not work in Vanilla.
+
 v2.0.13:
 - 10.2.0 compatibility.
 
