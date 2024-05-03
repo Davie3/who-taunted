@@ -24,7 +24,7 @@ Help localize here on Curseforge! - http://wow.curseforge.com/addons/who-taunted
 Feel free to post any of these right here! Please post any serious problems or bugs on GitHub - https://github.com/Davie3/who-taunted/issues
 
 ## Recent Change Log
-# [v2.0.14]()
+# [v2.0.14](https://www.curseforge.com/wow/addons/who-taunted/files/5313350)
 - 10.2.6 compatibility.
 - 4.4.0 Cataclysm Classic compatibility.
 - Removing the WhoTaunted_Vanilla TOC for now as WhoTaunted does not work in Vanilla.
