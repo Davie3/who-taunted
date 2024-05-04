@@ -2,35 +2,182 @@ name: Update TOC Interface version(s)
 
 on:
   schedule:
-    - cron: 0 * * * *
+    - cron: 00 * * * *
+
+env:
+  RETAIL_TOC: WhoTaunted.toc
+  CLASSIC_TOC: WhoTaunted_Cata.toc
+  CHANGELOG: changelog.txt
+  TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
+  MAINLINE_NAME: Dragonflight
+  CLASSIC_NAME: Cataclysm
 
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
       - name: Clone project
         uses: actions/checkout@v4
-
-      - name: Update TOC Interface Version
-        uses: p3lim/toc-interface-updater@v3
         with:
-          flavor: retail
-          future: false
+          fetch-depth: 0
+
+      - name: Extract repo Interface Numbers
+        id: repo_extract_interface
+        run: |
+          MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
+          echo "Interface Number is $MAINLINE_INTERFACE_NUMBER"
+          echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+          CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
+          echo "Interface Number is $CLASSIC_INTERFACE_NUMBER"
+          echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Extract Repo Versions
+        id: repo_extract_version
+        run: |
+          #!/bin/bash
+          # Extract versions from file
+          MAINLINE=$(grep -oP '${{ env.MAINLINE_NAME }} \(\K[^\)]+' README-CF.md)
+          echo "Mainline version: $MAINLINE"
+          echo "mainline_version=$MAINLINE" >> $GITHUB_OUTPUT
+          CLASSIC=$(grep -oP '${{ env.CLASSIC_NAME }} \(\K[^\)]+' README-CF.md)
+          echo "Classic version: $CLASSIC"
+          echo "classic_version=$CLASSIC" >> $GITHUB_OUTPUT
+
+      - name: Update Mainline TOC
+        uses: oppzippy/update-toc-action@v1
+        with:
+          toc-path: "$RETAIL_TOC"
+          product: "wow"
+
+      - name: Update Classic TOC
+        uses: oppzippy/update-toc-action@v1
+        with:
+          toc-path: "$CLASSIC_TOC"
+          product: "wow_classic"
+
+      - name: Extract Mainline Interface Number
+        id: extract_interface
+        run: |
+          MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
+          echo "Interface Number is $MAINLINE_INTERFACE_NUMBER"
+          echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+          CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
+          echo "Interface Number is $CLASSIC_INTERFACE_NUMBER"
+          echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Get Mainline Version
+        id: mainline_version
+        run: |
+          #!/bin/bash
+          html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
+          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.mainline_interface_number }}</code>' | head -n 1)
+          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get Classic Version
+        id: classic_version
+        run: |
+          #!/bin/bash
+          html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
+          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.classic_interface_number }}</code>' | head -n 1)
+          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
+          echo "Version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Find and Replace Mainline Version Number
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "${{ env.MAINLINE_NAME }} (${{ steps.repo_extract_version.outputs.mainline_version}})"
+          replace: "${{ env.MAINLINE_NAME }} (${{ steps.mainline_version.outputs.version }})"
+          regex: false
+
+      - name: Find and Replace Mainline Version Number
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number }}
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: "${{ env.CLASSIC_NAME }} (${{ steps.repo_extract_version.outputs.classic_version }})"
+          replace: "${{ env.CLASSIC_NAME }} (${{ steps.classic_version.outputs.version }})"
+          regex: false
+
+      - name: Get Semantic Version
+        id: repo_semantic_version
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        uses: PaulHatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${increment}"
+
+      - name: Update changelog
+        run: |
+          echo "${{ steps.repo_semantic_version.outputs.version_tag }}:" >> temp_changelog.txt
+          echo "- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility." >> temp_changelog.txt
+          echo "- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility." >> temp_changelog.txt
+          echo "" >> temp_changelog.txt
+          cat $CHANGELOG >> temp_changelog.txt
+          mv temp_changelog.txt $CHANGELOG
+
+      - name: Update README.md
+        run: |
+          #!/bin/bash
+          file_path="README.md"
+          new_lines="**[${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})**
+          - ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility.
+          - ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility.
+          "
+          start_line=$(grep -n "## Change Log" "$file_path" | cut -d: -f1)
+          awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
+
+      - name: Update README-CF.md
+        run: |
+          #!/bin/bash
+          file_path="README-CF.md"
+          new_lines="**[${{ steps.repo_semantic_version.outputs.version_tag }}](https://www.curseforge.com/wow/addons/who-taunted/files/)**
+          - ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility.
+          - ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility.
+          "
+          start_line=$(grep -n "## Recent Change Log" "$file_path" | cut -d: -f1)
+          awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v6.0.5
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        uses: peter-evans/create-pull-request@v6
         with:
-          title: Update Interface Version
-          commit-message: Update Interface Version
-          branch: interface-version
+          title: ${{ steps.repo_semantic_version.outputs.version_tag }}
+          commit-message: Update WoW Version - mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
+          branch: mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
           body: |
-            New WoW version(s) detected:
-            - Review latest Interface Version(s): https://warcraft.wiki.gg/wiki/TOC_format
-            - Auto-generated by [toc-interface-updater][1]
+            ## Current Repo Versions
+            - Repo Mainline Version Number: `${{ steps.repo_extract_version.outputs.mainline_version }}`
+            - Repo Mainline Interface Number: `${{ steps.repo_extract_interface.outputs.mainline_interface_number }}`
+            - Repo Classic Version Number: `${{ steps.repo_extract_version.outputs.classic_version }}`
+            - Repo Classic Interface Number: `${{ steps.repo_extract_interface.outputs.classic_interface_number }}`
 
-            [1]: https://github.com/marketplace/actions/toc-interface-updater
+            ## Latest WoW Versions
+            - Latest Mainline Version Number: `${{ steps.mainline_version.outputs.version }}`
+            - Latest Mainline Interface Number: `${{ steps.extract_interface.outputs.mainline_interface_number }}`
+            - Latest Classic Version Number: `${{ steps.classic_version.outputs.version }}`
+            - Latest Classic Interface Number: `${{ steps.extract_interface.outputs.classic_interface_number }}`
+
+            ## Version Checklist
+            - [ ] Review latest Interface Version(s): ${{ env.TOC_FORMAT_WEBSITE }}
+            - [ ] Verify Changelog
+            - [ ] Verify README.md
+            - [ ] [Create new version tag/release](https://github.com/Davie3/test-toc-update/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }})
+            - [ ] Update CurseForge ${{ steps.repo_semantic_version.outputs.version_tag }} file changelog
+            - [ ] Update README-CF.md with CurseForge ${{ steps.repo_semantic_version.outputs.version_tag }} file URL
+            - [ ] Update CurseForge Description
+            - [ ] Merge PR
+
+            > PR Auto-generated utilizing [update-toc-action][1]
+
+            [1]: https://github.com/marketplace/actions/update-toc-action
           assignees: davie3
           reviewers: davie3
-          delete-branch: true
           labels: |
             compatibility
+            mainline
+            classic
+          delete-branch: true

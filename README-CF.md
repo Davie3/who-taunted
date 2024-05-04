@@ -6,7 +6,7 @@ Latest WoW versions now supported!
 
 ### Mainline and Classic
 - Dragonflight (10.2.6)
-- Cata (4.4.0)
+- Cataclysm (4.4.0)
 
 ### Legacy
 - Shadowlands (9.2.7)

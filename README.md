@@ -16,7 +16,7 @@ Help localize on Curseforge! - http://wow.curseforge.com/addons/who-taunted/loca
 
 ## Supported Taunts
 
-| Class            | Dragonflight (10.2.6)                                    | Cata (4.4.0)
+| Class            | Dragonflight (10.2.6)                                    | Cataclysm (4.4.0)
 | ---              | ---                                                      | ---
 | **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE)   | Taunt; Mocking Blow; Challenging Shout (AOE)
 | **Paladin**      | Hand of Reckoning; Final Stand (AOE)                     | Hand of Reckoning; Righteous Defense (AOE)
