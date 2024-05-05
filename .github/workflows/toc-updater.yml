@@ -5,13 +5,13 @@ on:
     - cron: 00 * * * *
 
 env:
+  MAINLINE_NAME: Dragonflight
+  CLASSIC_NAME: Cataclysm
   RETAIL_TOC: WhoTaunted.toc
   CLASSIC_TOC: WhoTaunted_Cata.toc
   CHANGELOG: CHANGELOG.md
   README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
-  MAINLINE_NAME: Dragonflight
-  CLASSIC_NAME: Cataclysm
 
 jobs:
   toc-update:
@@ -26,6 +26,7 @@ jobs:
       - name: Extract Repo Interface Numbers
         id: repo_extract_interface
         run: |
+          #!/bin/bash
           MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
           echo "Repo Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
           echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
@@ -61,6 +62,7 @@ jobs:
       - name: Extract Post-Update Interface Numbers
         id: extract_interface
         run: |
+          #!/bin/bash
           MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
           echo "Post-update Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
           echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
@@ -144,6 +146,33 @@ jobs:
           echo "$CLASSIC_COMPATIBILITY_STRING"
           echo "classic_compatibility=$CLASSIC_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
 
+      - name: Build Release/Tag Compatibility String
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        id: changelog_release
+        run: |
+          #!/bin/bash
+          input_string=""
+
+          # Add Mainline compatibility line if there is a change
+          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
+            input_string+='${{ steps.changelog.outputs.mainline_compatibility }}%0A'
+          fi
+
+          # Add Classic compatibility line if there is a change
+          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
+            input_string+='${{ steps.changelog.outputs.classic_compatibility }}'
+          fi
+
+          echo "Input String:"
+          echo "$input_string"
+
+          # Replace white spaces with '%20'
+          ENCODED_STRING=$(echo "$input_string" | sed 's/ /%20/g')
+
+          echo "Encoded String:"
+          echo "$ENCODED_STRING"
+          echo "encoded_string=$ENCODED_STRING" >> $GITHUB_OUTPUT
+
       - name: Update README.md
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
@@ -172,6 +201,7 @@ jobs:
       - name: Update CHANGELOG.md
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
+          #!/bin/bash
           echo "## [${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})" >> temp_changelog.txt
 
           # Add Mainline compatibility line if there is a change
@@ -209,10 +239,10 @@ jobs:
             - Latest Classic Interface Number: `${{ steps.extract_interface.outputs.classic_interface_number }}`
 
             ## Version Checklist
-            - [ ] Review latest Interface Version(s): ${{ env.TOC_FORMAT_WEBSITE }}
-            - [ ] Verify Changelog
-            - [ ] Verify README.md
-            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&title=${{ steps.repo_semantic_version.outputs.version_tag }})
+            - [ ] Review [TOC Interface Version(s)](${{ env.TOC_FORMAT_WEBSITE }})
+            - [ ] Verify `CHANGELOG.md`
+            - [ ] Verify `README.md`
+            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&title=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})
             - [ ] Verify [CurseForge Package](https://www.curseforge.com/wow/addons/who-taunted/files)
             - [ ] Verify [WoWInterface Package](https://www.wowinterface.com/downloads/info14842-WhoTaunted.html)
             - [ ] Verify [Wago Package](https://addons.wago.io/addons/who-taunted)
