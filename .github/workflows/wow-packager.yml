@@ -2,8 +2,8 @@ name: Packager for WoWInterface and Wago. CurseForge packager is used natively.
 
 on:
   push:
-    branches: [main]
-    tags: ["*"]
+    tags:
+      - "**"
 
 jobs:
   release:
