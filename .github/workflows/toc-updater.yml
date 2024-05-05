@@ -29,6 +29,7 @@ jobs:
           MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
           echo "Repo Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
           echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
           CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
           echo "Repo Classic Interface Number: $CLASSIC_INTERFACE_NUMBER"
           echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
@@ -37,10 +38,10 @@ jobs:
         id: repo_extract_version
         run: |
           #!/bin/bash
-          # Extract versions from file
           MAINLINE=$(grep -oP '${{ env.MAINLINE_NAME }} \(\K[^\)]+' $README)
           echo "Mainline version: $MAINLINE"
           echo "mainline_version=$MAINLINE" >> $GITHUB_OUTPUT
+
           CLASSIC=$(grep -oP '${{ env.CLASSIC_NAME }} \(\K[^\)]+' $README)
           echo "Classic version: $CLASSIC"
           echo "classic_version=$CLASSIC" >> $GITHUB_OUTPUT
@@ -63,6 +64,7 @@ jobs:
           MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
           echo "Post-update Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
           echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
           CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
           echo "Post-update Classic Interface Number: $CLASSIC_INTERFACE_NUMBER"
           echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
@@ -75,6 +77,7 @@ jobs:
           html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
           line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.mainline_interface_number }}</code>' | head -n 1)
           VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
+
           echo "Mainline Version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -86,6 +89,7 @@ jobs:
           html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
           line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.classic_interface_number }}</code>' | head -n 1)
           VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
+
           echo "Classic Version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -113,15 +117,45 @@ jobs:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${increment}"
 
+      - name: Build changelog compatibility
+        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        id: changelog
+        run: |
+          #!/bin/bash
+          MAINLINE_COMPATIBILITY_STRING=""
+          CLASSIC_COMPATIBILITY_STRING=""
+
+          if [ "${{ steps.repo_extract_interface.outputs.mainline_interface_number }}" != "${{ steps.extract_interface.outputs.mainline_interface_number }}" ]; then
+              MAINLINE_COMPATIBILITY_STRING="- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility."
+          fi
+          if [ "${{ steps.repo_extract_interface.outputs.classic_interface_number }}" != "${{ steps.extract_interface.outputs.classic_interface_number }}" ]; then
+              CLASSIC_COMPATIBILITY_STRING="- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility."
+          fi
+
+          echo "Compatibility:"
+          echo "$MAINLINE_COMPATIBILITY_STRING"
+          echo "mainline_compatibility=$MAINLINE_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
+          echo "$CLASSIC_COMPATIBILITY_STRING"
+          echo "classic_compatibility=$CLASSIC_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
+
       - name: Update README.md
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
           #!/bin/bash
           file_path="README.md"
+
           new_lines="**[${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})**
-          - ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility.
-          - ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility.
           "
+          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
+          new_lines+="${{ steps.changelog.outputs.mainline_compatibility }}
+          "
+          fi
+          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
+          new_lines+="${{ steps.changelog.outputs.classic_compatibility }}
+          "
+          fi
+          echo "$new_lines"
+
           start_line=$(grep -n "## Change Log" "$file_path" | cut -d: -f1)
           awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
 
@@ -129,8 +163,12 @@ jobs:
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
           echo "## [${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})" >> temp_changelog.txt
-          echo "- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility." >> temp_changelog.txt
-          echo "- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility." >> temp_changelog.txt
+          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
+            echo "${{ steps.changelog.outputs.mainline_compatibility }}" >> temp_changelog.txt
+          fi
+          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
+            echo "${{ steps.changelog.outputs.classic_compatibility }}" >> temp_changelog.txt
+          fi
           echo "" >> temp_changelog.txt
           cat $CHANGELOG >> temp_changelog.txt
           mv temp_changelog.txt $CHANGELOG
@@ -165,7 +203,7 @@ jobs:
             - [ ] Verify [Wago Package](https://addons.wago.io/addons/who-taunted)
             - [ ] Merge PR
 
-            > PR Auto-generated utilizing [update-toc-action][1]
+            > PR auto-generated utilizing [update-toc-action][1]
 
             [1]: https://github.com/marketplace/actions/update-toc-action
           assignees: davie3
