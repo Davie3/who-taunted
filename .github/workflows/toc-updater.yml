@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone project
+      - name: Clone Project
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -123,7 +123,7 @@ jobs:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${increment}"
 
-      - name: Build changelog compatibility
+      - name: Build Changelog Compatibility Strings
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         id: changelog
         run: |
@@ -188,7 +188,7 @@ jobs:
           cat $CHANGELOG >> temp_changelog.txt
           mv temp_changelog.txt $CHANGELOG
 
-      - name: Create pull request
+      - name: Create Pull Request
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         uses: peter-evans/create-pull-request@v6
         with:
