@@ -31,17 +31,17 @@
 - Minor code change for Party and Raid detection.
 
 ## [v2.0.4](https://github.com/Davie3/who-taunted/releases/tag/v2.0.4)
-- Fixed a localization issue which caused options for Output types to not function correctly (##15).
+- Fixed a localization issue which caused options for Output types to not function correctly (#15).
 - Added a new option which defaults the output to Self if any of the outputs are unavailable. For example, if you are not in a party or raid.
 
 ## [v2.0.3](https://github.com/Davie3/who-taunted/releases/tag/v2.0.3)
-- Fixed a bug that would cause "You Are Not in Party" or similar system errors (##12).
+- Fixed a bug that would cause "You Are Not in Party" or similar system errors (#12).
 
 ## [v2.0.2](https://github.com/Davie3/who-taunted/releases/tag/v2.0.2)
 - 10.0/Dragonflight compatibility.
 
 ## [v2.0.1](https://github.com/Davie3/who-taunted/releases/tag/v2.0.1)
-- Fixed a bug where errors were thrown in Classic when a player taunts. Some code from Mainline WoW was not compatible in Classic (##8).
+- Fixed a bug where errors were thrown in Classic when a player taunts. Some code from Mainline WoW was not compatible in Classic (#8).
 - Fixed some issues with the Chat Window Options.
 - Fixed a rare bug with the Taunt Output Options.
 
@@ -55,7 +55,7 @@
 - Cleaning up and re-organizing the options menu.
 - Profiles are now supported in the options menu.
 - Re-introducing options to change the Output of each Taunt Type.
-- ## [various bug fixes and improvements - https//github.com/Davie3/who-taunted/releases/tag/v2.0](https://github.com/Davie3/who-taunted/releases/tag/various bug fixes and improvements - https//github.com/Davie3/who-taunted/releases/tag/v2.0)
+- Various bug fixes and improvements - https://github.com/Davie3/who-taunted/releases/tag/v2.0
 
 ## [v1.5](https://github.com/Davie3/who-taunted/releases/tag/v1.5)
 - 9.0.1/Shadowlands compatibility.
