@@ -11,6 +11,9 @@
 ## X-License: GPLv3
 ## X-Category: Tank
 ## X-Localizations: enUS, deDE, esEs, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
+## X-Curse-Project-ID: 20051
+## X-WoWI-ID: 14842
+## X-Wago-ID: L6JDJxGv
 
 #@no-lib-strip@
 Libs\load-embeds.xml

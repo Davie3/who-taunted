@@ -25,3 +25,8 @@ ignore:
     - .vscode
     - .gitignore
     - .github
+    - .release
+
+manual-changelog:
+    filename: CHANGELOG.md
+    markup-type: markdown

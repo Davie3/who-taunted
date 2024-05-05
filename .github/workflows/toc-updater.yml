@@ -7,13 +7,14 @@ on:
 env:
   RETAIL_TOC: WhoTaunted.toc
   CLASSIC_TOC: WhoTaunted_Cata.toc
-  CHANGELOG: changelog.txt
+  CHANGELOG: CHANGELOG.md
+  README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
   MAINLINE_NAME: Dragonflight
   CLASSIC_NAME: Cataclysm
 
 jobs:
-  run:
+  toc-update:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,10 +38,10 @@ jobs:
         run: |
           #!/bin/bash
           # Extract versions from file
-          MAINLINE=$(grep -oP '${{ env.MAINLINE_NAME }} \(\K[^\)]+' README-CF.md)
+          MAINLINE=$(grep -oP '${{ env.MAINLINE_NAME }} \(\K[^\)]+' $README)
           echo "Mainline version: $MAINLINE"
           echo "mainline_version=$MAINLINE" >> $GITHUB_OUTPUT
-          CLASSIC=$(grep -oP '${{ env.CLASSIC_NAME }} \(\K[^\)]+' README-CF.md)
+          CLASSIC=$(grep -oP '${{ env.CLASSIC_NAME }} \(\K[^\)]+' $README)
           echo "Classic version: $CLASSIC"
           echo "classic_version=$CLASSIC" >> $GITHUB_OUTPUT
 
@@ -112,16 +113,6 @@ jobs:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${increment}"
 
-      - name: Update changelog
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
-        run: |
-          echo "${{ steps.repo_semantic_version.outputs.version_tag }}:" >> temp_changelog.txt
-          echo "- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility." >> temp_changelog.txt
-          echo "- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility." >> temp_changelog.txt
-          echo "" >> temp_changelog.txt
-          cat $CHANGELOG >> temp_changelog.txt
-          mv temp_changelog.txt $CHANGELOG
-
       - name: Update README.md
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
@@ -134,17 +125,15 @@ jobs:
           start_line=$(grep -n "## Change Log" "$file_path" | cut -d: -f1)
           awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
 
-      - name: Update README-CF.md
+      - name: Update CHANGELOG.md
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
         run: |
-          #!/bin/bash
-          file_path="README-CF.md"
-          new_lines="**[${{ steps.repo_semantic_version.outputs.version_tag }}](https://www.curseforge.com/wow/addons/who-taunted/files/)**
-          - ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility.
-          - ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility.
-          "
-          start_line=$(grep -n "## Recent Change Log" "$file_path" | cut -d: -f1)
-          awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
+          echo "## [${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})" >> temp_changelog.txt
+          echo "- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility." >> temp_changelog.txt
+          echo "- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility." >> temp_changelog.txt
+          echo "" >> temp_changelog.txt
+          cat $CHANGELOG >> temp_changelog.txt
+          mv temp_changelog.txt $CHANGELOG
 
       - name: Create pull request
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
@@ -170,12 +159,10 @@ jobs:
             - [ ] Review latest Interface Version(s): ${{ env.TOC_FORMAT_WEBSITE }}
             - [ ] Verify Changelog
             - [ ] Verify README.md
-            - [ ] [Create new version tag/release](https://github.com/Davie3/test-toc-update/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }})
-            - [ ] Update CurseForge ${{ steps.repo_semantic_version.outputs.version_tag }} file changelog
-            - [ ] Update README-CF.md with CurseForge ${{ steps.repo_semantic_version.outputs.version_tag }} file URL
-            - [ ] Update [CurseForge Description](https://authors.curseforge.com/#/projects/20051/description)
-            - [ ] Download latest [CurseForge Version](https://www.curseforge.com/wow/addons/who-taunted/files)
-            - [ ] Upload and update [WoWInterface Version](https://www.wowinterface.com/downloads/info14842-WhoTaunted.html)
+            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&title=${{ steps.repo_semantic_version.outputs.version_tag }})
+            - [ ] Verify [CurseForge Package](https://www.curseforge.com/wow/addons/who-taunted/files)
+            - [ ] Verify [WoWInterface Package](https://www.wowinterface.com/downloads/info14842-WhoTaunted.html)
+            - [ ] Verify [Wago Package](https://addons.wago.io/addons/who-taunted)
             - [ ] Merge PR
 
             > PR Auto-generated utilizing [update-toc-action][1]
