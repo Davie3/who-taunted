@@ -12,7 +12,7 @@ Full Taunt list on GitHub - https://github.com/Davie3/who-taunted
 
 ## Localization
 
-Help localize here on Curseforge! - http://wow.curseforge.com/addons/who-taunted/localization/
+Help localize here on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taunted/localization
 
 ## Questions, Comments, Problems, Suggestions?
 
