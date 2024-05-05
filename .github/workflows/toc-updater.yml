@@ -118,8 +118,8 @@ jobs:
           regex: false
 
       - name: Get WhoTaunted Semantic Version
-        id: repo_semantic_version
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        id: repo_semantic_version
         uses: PaulHatch/semantic-version@v5.4.0
         with:
           tag_prefix: "v"
