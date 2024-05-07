@@ -1,3 +1,6 @@
+## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
+- 10.2.7 Dragonflight compatibility.
+
 ## [v2.0.14](https://github.com/Davie3/who-taunted/releases/tag/v2.0.14)
 - 10.2.6 compatibility.
 - 4.4.0 Cataclysm Classic compatibility.
