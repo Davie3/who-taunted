@@ -13,17 +13,17 @@ Please fill in the WoW Client Version.
 **Lua Error**
 Please paste the Lua error.
 
-**Describe the bug**
+**Describe the Bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
-If applicable, how did this bug come about?
+**Steps to Reproduce**
+If applicable, how did this bug come about? What steps can you share to reproduce the problem?
 
-**Expected behavior**
+**Expected Behavior**
 If applicable, what did you expect to happen?
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Additional context**
+**Additional Context**
 Add any other context about the problem here.
