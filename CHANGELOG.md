@@ -1,4 +1,7 @@
 ## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
+- 11.0.0 Dragonflight compatibility.
+
+## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
 - 10.2.7 Dragonflight compatibility.
 
 ## [v2.0.14](https://github.com/Davie3/who-taunted/releases/tag/v2.0.14)

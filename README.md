@@ -18,7 +18,7 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 ## Supported Taunts
 
-| Class            | Dragonflight (10.2.7)                                    | Cataclysm (4.4.0)
+| Class            | Dragonflight (11.0.0)                                    | Cataclysm (4.4.0)
 | ---              | ---                                                      | ---
 | **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE)   | Taunt; Mocking Blow; Challenging Shout (AOE)
 | **Paladin**      | Hand of Reckoning; Final Stand (AOE)                     | Hand of Reckoning; Righteous Defense (AOE)
@@ -44,6 +44,9 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 | **Warlock**      | N/A                                   | N/A                                          | Challenging Howl (Metamorphosis)
 
 ## Change Log
+## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
+- 11.0.0 Dragonflight compatibility.
+
 ## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
 - 10.2.7 Dragonflight compatibility.
 
