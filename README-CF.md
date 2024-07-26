@@ -5,7 +5,7 @@ Tracks player taunts and displays who they taunted, what ability they used to ta
 Latest WoW versions now supported!
 
 ### Mainline and Classic
-- Dragonflight
+- The War Within
 - Cataclysm
 
 Full Taunt list on GitHub - https://github.com/Davie3/who-taunted

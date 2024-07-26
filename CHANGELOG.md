@@ -1,3 +1,6 @@
+## [v2.0.16](https://github.com/Davie3/who-taunted/releases/tag/v2.0.16)
+- 11.0.0 The War Within compatibility.
+
 ## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
 - 10.2.7 Dragonflight compatibility.
 
