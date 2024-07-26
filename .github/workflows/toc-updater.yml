@@ -5,7 +5,7 @@ on:
     - cron: 00 * * * *
 
 env:
-  MAINLINE_NAME: Dragonflight
+  MAINLINE_NAME: The War Within
   CLASSIC_NAME: Cataclysm
   RETAIL_TOC: WhoTaunted.toc
   CLASSIC_TOC: WhoTaunted_Cata.toc
