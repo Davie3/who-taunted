@@ -6,7 +6,7 @@ local PlayerName, PlayerRealm = UnitName("player");
 local UserID = tonumber(tostring(UnitGUID("player")):sub(12), 16);
 local BgDisable = false;
 local DisableInPvPZone = false;
-local version, build, date, tocVersion = GetBuildInfo();
+local version, build, date, tocVersion, localizedVersion, buildType = GetBuildInfo();
 local WhoTauntedVersion = GetAddOnMetadata("WhoTaunted", "Version");
 local NewVersionAvailable = false;
 local RecentTaunts = {};
@@ -145,10 +145,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, TargetGUID, Target, FailType, 
 					return;
 				end
 				OutputType = WhoTaunted:GetOutputType(TauntType);
-				local Spell = GetSpellLink(ID);
-				if (not Spell) then
-					Spell = WhoTaunted:GetSpellName(ID);
-				end
+				local Spell = WhoTaunted:GetSpellLink(ID);
 
 				if (TauntType == TauntTypes.Normal) then
 					OutputMessage = WhoTaunted:OutputMessageNormal(Name, Target, Spell, OutputType);
@@ -161,10 +158,7 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, TargetGUID, Target, FailType, 
 					return;
 				end
 				OutputType = WhoTaunted:GetOutputType(TauntType);
-				local Spell = GetSpellLink(ID);
-				if (not Spell) then
-					Spell = WhoTaunted:GetSpellName(ID);
-				end
+				local Spell = WhoTaunted:GetSpellLink(ID);
 
 				--Monk AOE Taunt for casting Provoke (115546) on Black Ox Statue (61146)
 				if (ID == Env.Provoke) and (TargetGUID) and (string.match(TargetGUID, tostring(Env.BlackOxStatue))) then
@@ -184,10 +178,8 @@ function WhoTaunted:DisplayTaunt(Event, Name, ID, TargetGUID, Target, FailType, 
 				end
 				TauntType = TauntTypes.Failed;
 				OutputType = WhoTaunted:GetOutputType(TauntType);
-				local Spell = GetSpellLink(ID);
-				if (not Spell) then
-					Spell = WhoTaunted:GetSpellName(ID);
-				end
+				local Spell = WhoTaunted:GetSpellLink(ID);
+
 				OutputMessage = WhoTaunted:OutputMessageFailed(Name, Target, Spell, ID, OutputType, FailType);
 			else
 				return;
@@ -208,23 +200,46 @@ end
 function WhoTaunted:IsTaunt(SpellID)
 	local IsTaunt, TauntType = false, "";
 
-	if (IsTaunt == false) then
-		for k, v in pairs(WhoTaunted.TauntsList.SingleTarget) do
-			local spellTauntList = GetSpellInfo(v);
-			local spell = GetSpellInfo(SpellID);
-			if (spellTauntList) and (spell) and (spellTauntList == spell) then
-				IsTaunt, TauntType = true, TauntTypes.Normal;
-				break;
+	if (tocVersion) and (tocVersion >= 110000) then
+		if (IsTaunt == false) then
+			for k, v in pairs(WhoTaunted.TauntsList.SingleTarget) do
+				local spellTauntList = C_Spell.GetSpellInfo(v);
+				local spell = C_Spell.GetSpellInfo(SpellID);
+				if (spellTauntList) and (spell) and (spellTauntList.name == spell.name) then
+					IsTaunt, TauntType = true, TauntTypes.Normal;
+					break;
+				end
 			end
 		end
-	end
-	if (IsTaunt == false) then
-		for k, v in pairs(WhoTaunted.TauntsList.AOE) do
-			local spellTauntList = GetSpellInfo(v);
-			local spell = GetSpellInfo(SpellID);
-			if (spellTauntList) and (spell) and (spellTauntList == spell) then
-				IsTaunt, TauntType = true, TauntTypes.AOE;
-				break;
+		if (IsTaunt == false) then
+			for k, v in pairs(WhoTaunted.TauntsList.AOE) do
+				local spellTauntList = C_Spell.GetSpellInfo(v);
+				local spell = C_Spell.GetSpellInfo(SpellID);
+				if (spellTauntList) and (spell) and (spellTauntList.name == spell.name) then
+					IsTaunt, TauntType = true, TauntTypes.AOE;
+					break;
+				end
+			end
+		end
+	else
+		if (IsTaunt == false) then
+			for k, v in pairs(WhoTaunted.TauntsList.SingleTarget) do
+				local spellTauntList = GetSpellInfo(v);
+				local spell = GetSpellInfo(SpellID);
+				if (spellTauntList) and (spell) and (spellTauntList == spell) then
+					IsTaunt, TauntType = true, TauntTypes.Normal;
+					break;
+				end
+			end
+		end
+		if (IsTaunt == false) then
+			for k, v in pairs(WhoTaunted.TauntsList.AOE) do
+				local spellTauntList = GetSpellInfo(v);
+				local spell = GetSpellInfo(SpellID);
+				if (spellTauntList) and (spell) and (spellTauntList == spell) then
+					IsTaunt, TauntType = true, TauntTypes.AOE;
+					break;
+				end
 			end
 		end
 	end
@@ -262,11 +277,20 @@ function WhoTaunted:IsRecentTaunt(TauntName, TauntID, TauntTime)
 
 	if (TauntName) and (TauntID) and (TauntTime) and (type(TauntTime) == "number") then
 		for k, v in pairs(RecentTaunts) do
-			local spellRecentTaunt = GetSpellInfo(RecentTaunts[k].ID);
-			local spell = GetSpellInfo(TauntID);
-			if (spellRecentTaunt) and (spell) and (RecentTaunts[k].Name == TauntName) and (spellRecentTaunt == spell) and (RecentTaunts[k].TimeStamp == TauntTime) then
-				IsRecentTaunt = true;
-				break;
+			if (tocVersion) and (tocVersion >= 110000) then
+				local spellRecentTaunt = C_Spell.GetSpellInfo(RecentTaunts[k].ID);
+				local spell = C_Spell.GetSpellInfo(TauntID);
+				if (spellRecentTaunt) and (spell) and (RecentTaunts[k].Name == TauntName) and (spellRecentTaunt.name == spell.name) and (RecentTaunts[k].TimeStamp == TauntTime) then
+					IsRecentTaunt = true;
+					break;
+				end
+			else
+				local spellRecentTaunt = GetSpellInfo(RecentTaunts[k].ID);
+				local spell = GetSpellInfo(TauntID);
+				if (spellRecentTaunt) and (spell) and (RecentTaunts[k].Name == TauntName) and (spellRecentTaunt == spell) and (RecentTaunts[k].TimeStamp == TauntTime) then
+					IsRecentTaunt = true;
+					break;
+				end
 			end
 		end
 	end
@@ -482,12 +506,35 @@ end
 function WhoTaunted:GetSpellName(ID)
 	local spellName = "";
 
-	local name, _, _, _, _, _, _ = GetSpellInfo(ID);
-	if (name) then
-		spellName = name;
+	if (tocVersion) and (tocVersion >= 110000) then
+		local spell = C_Spell.GetSpellInfo(ID);
+		if (spell) then
+			spellName = spell.name;
+		end
+	else
+		local name, _, _, _, _, _, _ = GetSpellInfo(ID);
+		if (name) then
+			spellName = name;
+		end
 	end
 
 	return spellName;
+end
+
+function WhoTaunted:GetSpellLink(ID)
+	local spellLink = "";
+
+	if (tocVersion) and (tocVersion >= 110000) then
+		spellLink = C_Spell.GetSpellLink(ID);
+	else
+		spellLink = GetSpellLink(ID);
+	end
+
+	if (not spellLink) or (spellLink == "") then
+		spellLink = WhoTaunted:GetSpellName(ID);
+	end
+
+	return spellLink;
 end
 
 function WhoTaunted:SendCommData(commType)

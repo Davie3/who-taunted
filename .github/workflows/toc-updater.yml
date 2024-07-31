@@ -12,6 +12,7 @@ env:
   CHANGELOG: CHANGELOG.md
   README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
+  API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
 
 jobs:
   toc-update:
@@ -240,6 +241,7 @@ jobs:
 
             ## Version Checklist
             - [ ] Review [TOC Interface Version(s)](${{ env.TOC_FORMAT_WEBSITE }})
+            - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
             - [ ] Verify `CHANGELOG.md`
             - [ ] Verify `README.md`
             - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&title=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})

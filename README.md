@@ -46,8 +46,12 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 
 ## Change Log
+## [v2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.1)
+- Bug fixes for 11.0 The War Within compatibility.
+- Code Optimizations to ensure both Mainline and Classic function correctly.
+
 ## [v2.0.16](https://github.com/Davie3/who-taunted/releases/tag/v2.0.16)
-- 11.0.0 Dragonflight compatibility.
+- 11.0.0 The War Within compatibility.
 
 ## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
 - 10.2.7 Dragonflight compatibility.
