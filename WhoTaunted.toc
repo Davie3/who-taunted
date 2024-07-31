@@ -5,6 +5,7 @@
 ## SavedVariables: WhoTauntedDB
 ## Title: Who Taunted?
 ## Version: @project-version@
+## IconAtlas: UI-CastingBar-Shield
 ## X-Embeds: Ace3
 ## X-Date: @project-date-iso@
 ## X-Website: https://www.curseforge.com/wow/addons/who-taunted

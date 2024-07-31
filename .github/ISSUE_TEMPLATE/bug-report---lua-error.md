@@ -11,7 +11,9 @@ assignees: Davie3
 Please fill in the WoW Client Version.
 
 **Lua Error**
-Please paste the Lua error.
+```
+Please paste the Lua error here.
+```
 
 **Describe the Bug**
 A clear and concise description of what the bug is.

@@ -1,6 +1,6 @@
-﻿local WhoTaunted = WhoTaunted;
+﻿local WhoTaunted = LibStub('AceAddon-3.0'):GetAddon("WhoTaunted");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
-local version, build, date, tocVersion = GetBuildInfo();
+local version, build, date, tocVersion, localizedVersion, buildType = GetBuildInfo();
 local Env = {
 	RighteousDefense = 31789,
 }

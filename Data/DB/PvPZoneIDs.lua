@@ -1,4 +1,4 @@
-local WhoTaunted = WhoTaunted;
+local WhoTaunted = LibStub('AceAddon-3.0'):GetAddon("WhoTaunted");
 
 WhoTaunted.PvPZoneIDs = {
 	588, --Ashran
