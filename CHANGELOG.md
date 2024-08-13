@@ -1,3 +1,6 @@
+## [v2.1.1](https://github.com/Davie3/who-taunted/releases/tag/v2.1.1)
+- 11.0.2 The War Within compatibility.
+
 ## [v2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.1)
 - Bug fixes for 11.0 The War Within compatibility.
 - Code Optimizations to ensure both Mainline and Classic function correctly.
