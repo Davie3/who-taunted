@@ -14,13 +14,13 @@ WhoTaunted.OutputTypes = {
 };
 
 WhoTaunted.options = {
-    name = "Who Taunted? "..GetAddOnMetadata("WhoTaunted", "Version"),
+    name = "Who Taunted? "..C_AddOns.GetAddOnMetadata("WhoTaunted", "Version"),
     type = 'group',
     args = {
         Intro = {
             order = 10,
             type = "description",
-            name = GetAddOnMetadata("WhoTaunted", "Notes")
+            name = C_AddOns.GetAddOnMetadata("WhoTaunted", "Notes")
         },
         Disabled = {
             type = "toggle",
