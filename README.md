@@ -46,6 +46,9 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 
 ## Change Log
+## [v2.1.2](https://github.com/Davie3/who-taunted/releases/tag/v2.1.2)
+- Bug fixes for 11.0.2 The War Within compatibility.
+
 ## [v2.1.1](https://github.com/Davie3/who-taunted/releases/tag/v2.1.1)
 - 11.0.2 The War Within compatibility.
 
