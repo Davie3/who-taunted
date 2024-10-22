@@ -18,7 +18,7 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 ## Supported Taunts
 
-| Class            | The War Within (11.0.2)                                  | Cataclysm (4.4.0)
+| Class            | The War Within (11.0.5)                                  | Cataclysm (4.4.0)
 | ---              | ---                                                      | ---
 | **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE)   | Taunt; Mocking Blow; Challenging Shout (AOE)
 | **Paladin**      | Hand of Reckoning; Final Stand (AOE)                     | Hand of Reckoning; Righteous Defense (AOE)
@@ -46,6 +46,9 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 
 ## Change Log
+## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
+- 11.0.5 The War Within compatibility.
+
 ## [v2.1.2](https://github.com/Davie3/who-taunted/releases/tag/v2.1.2)
 - Bug fixes for 11.0.2 The War Within compatibility.
 
