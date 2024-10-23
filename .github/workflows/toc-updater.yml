@@ -125,6 +125,7 @@ jobs:
         with:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${increment}"
+          bump_each_commit: true
 
       - name: Build Changelog Compatibility Strings
         if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
