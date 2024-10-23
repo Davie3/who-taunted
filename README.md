@@ -46,8 +46,9 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 
 ## Change Log
-## [v2.0.15](https://github.com/Davie3/who-taunted/releases/tag/v2.0.15)
+## [v2.1.3](https://github.com/Davie3/who-taunted/releases/tag/v2.1.3)
 - 11.0.5 The War Within compatibility.
+- Fixed a bug with the Chat Window option resetting back to default on log in.
 
 ## [v2.1.2](https://github.com/Davie3/who-taunted/releases/tag/v2.1.2)
 - Bug fixes for 11.0.2 The War Within compatibility.
