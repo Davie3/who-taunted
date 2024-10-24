@@ -1,3 +1,6 @@
+## [v2.1.4](https://github.com/Davie3/who-taunted/releases/tag/v2.1.4)
+- Remove some debug code from the last release.
+
 ## [v2.1.3](https://github.com/Davie3/who-taunted/releases/tag/v2.1.3)
 - 11.0.5 The War Within compatibility.
 - Fixed a bug with the Chat Window option resetting back to default on log in.
