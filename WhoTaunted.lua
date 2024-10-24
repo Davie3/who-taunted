@@ -468,7 +468,6 @@ end
 function WhoTaunted:IsChatWindow(ChatWindow)
 	local IsChatWindow = false;
 
-	WhoTaunted:Print(NUM_CHAT_WINDOWS);
 	for i = 1, NUM_CHAT_WINDOWS, 1 do
 		local name, fontSize, r, g, b, alpha, shown, locked, docked, uninteractable = GetChatWindowInfo(i);
 		if (name) and (name:trim() ~= "") and (tostring(name) == tostring(ChatWindow)) then

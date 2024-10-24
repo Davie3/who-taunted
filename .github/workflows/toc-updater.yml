@@ -245,6 +245,7 @@ jobs:
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
             - [ ] Verify `CHANGELOG.md`
             - [ ] Verify `README.md`
+            - [ ] Remove debug code
             - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&title=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})
             - [ ] Verify [CurseForge Package](https://www.curseforge.com/wow/addons/who-taunted/files)
             - [ ] Verify [WoWInterface Package](https://www.wowinterface.com/downloads/info14842-WhoTaunted.html)
