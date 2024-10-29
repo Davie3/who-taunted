@@ -24,6 +24,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch Repo Tags
+        run: git fetch --tags
+
       - name: Extract Repo Interface Numbers
         id: repo_extract_interface
         run: |
@@ -72,8 +75,21 @@ jobs:
           echo "Post-update Classic Interface Number: $CLASSIC_INTERFACE_NUMBER"
           echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
 
+      - name: Check if new version Branch Already Exists
+        id: check_branch
+        run: |
+          #!/bin/bash
+          BRANCH_NAME=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "Branch $BRANCH_NAME exists"
+            echo "branch_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Branch $BRANCH_NAME does not exist"
+            echo "branch_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get Mainline Version Number
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         id: mainline_version
         run: |
           #!/bin/bash
@@ -88,7 +104,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get Classic Version Number
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         id: classic_version
         run: |
           #!/bin/bash
@@ -103,7 +119,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Find and Replace Mainline Version Number
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number) && (steps.mainline_version.outputs.version != '')) }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: "${{ env.MAINLINE_NAME }} (${{ steps.repo_extract_version.outputs.mainline_version}})"
@@ -111,24 +127,35 @@ jobs:
           regex: false
 
       - name: Find and Replace Classic Version Number
-        if: ${{ steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.classic_version.outputs.version != '')) }}
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: "${{ env.CLASSIC_NAME }} (${{ steps.repo_extract_version.outputs.classic_version }})"
           replace: "${{ env.CLASSIC_NAME }} (${{ steps.classic_version.outputs.version }})"
           regex: false
 
-      - name: Get WhoTaunted Semantic Version
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
-        id: repo_semantic_version
-        uses: PaulHatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${increment}"
-          bump_each_commit: true
+      - name: Get Next Version Number Increment version
+        id: get_version_number
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
+        run: |
+          #!/bin/bash
+          # Get the latest tag and remove the 'v' prefix
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) | sed 's/^v//')
+          echo "Latest tag: $LATEST_TAG"
+
+          # Parse the latest tag into major, minor, patch
+          IFS='.' read -r major minor patch <<<"$LATEST_TAG"
+
+          # Increment patch version (adjust as needed for minor or major)
+          patch=$((patch + 1))
+
+          # Create the new version tag
+          NEW_VERSION="v$major.$minor.$patch"
+          echo "New tag: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Build Changelog Compatibility Strings
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.mainline_version.outputs.version != '' && steps.classic_version.outputs.version != '')) }}
         id: changelog
         run: |
           #!/bin/bash
@@ -149,7 +176,7 @@ jobs:
           echo "classic_compatibility=$CLASSIC_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
 
       - name: Build Release/Tag Compatibility String
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         id: changelog_release
         run: |
           #!/bin/bash
@@ -176,11 +203,11 @@ jobs:
           echo "encoded_string=$ENCODED_STRING" >> $GITHUB_OUTPUT
 
       - name: Update README.md
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         run: |
           #!/bin/bash
           file_path="README.md"
-          new_lines="## [${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})
+          new_lines="## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})
           "
 
           # Add Mainline compatibility line if there is a change
@@ -201,10 +228,10 @@ jobs:
           awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
 
       - name: Update CHANGELOG.md
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         run: |
           #!/bin/bash
-          echo "## [${{ steps.repo_semantic_version.outputs.version_tag }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.repo_semantic_version.outputs.version_tag }})" >> temp_changelog.txt
+          echo "## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})" >> temp_changelog.txt
 
           # Add Mainline compatibility line if there is a change
           if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
@@ -221,10 +248,10 @@ jobs:
           mv temp_changelog.txt $CHANGELOG
 
       - name: Create Pull Request
-        if: ${{ steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number }}
+        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.mainline_version.outputs.version != '' && steps.classic_version.outputs.version != '')) }}
         uses: peter-evans/create-pull-request@v7
         with:
-          title: ${{ steps.repo_semantic_version.outputs.version_tag }}
+          title: ${{ steps.get_version_number.outputs.new_version }}
           commit-message: Update WoW Version - mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
           branch: mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
           body: |
