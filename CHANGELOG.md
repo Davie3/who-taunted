@@ -1,3 +1,6 @@
+## [v2.0.32](https://github.com/Davie3/who-taunted/releases/tag/v2.0.32)
+-  Cataclysm compatibility.
+
 ## [v2.1.4](https://github.com/Davie3/who-taunted/releases/tag/v2.1.4)
 - Remove some debug code from the last release.
 
