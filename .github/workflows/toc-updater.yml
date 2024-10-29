@@ -11,8 +11,14 @@ env:
   CLASSIC_TOC: WhoTaunted_Cata.toc
   CHANGELOG: CHANGELOG.md
   README: README.md
-  TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
+  TOC_FORMAT_WEBSITE_MAINLINE: https://blizztrack.com/view/wow?type=versions
+  TOC_FORMAT_API_MAINLINE: https://blizztrack.com/api/manifest/wow/versions
+  TOC_FORMAT_WEBSITE_CLASSIC: https://blizztrack.com/view/wow_classic?type=versions
+  TOC_FORMAT_API_CLASSIC: https://blizztrack.com/api/manifest/wow_classic/versions
   API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
+  CURSEFORGE_WEBSITE: https://www.curseforge.com/wow/addons/who-taunted/files
+  WOWINTERFACE_WEBSITE: https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
+  WAGO_WEBSITE: https://addons.wago.io/addons/who-taunted/versions
 
 jobs:
   toc-update:
@@ -51,17 +57,55 @@ jobs:
           echo "Classic version: $CLASSIC_VERSION"
           echo "classic_version=$CLASSIC_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Get Latest Mainline Version Number
+        id: mainline_version
+        run: |
+          #!/bin/bash
+          # Fetch JSON data from the Blizztrack API
+          JSON_DATA=$(curl -X GET "${{ env.TOC_FORMAT_API_MAINLINE }}" -H  "accept: application/json")
+
+          # Parse the JSON to extract the version number for "Americas"
+          VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
+
+          # Convert version (e.g., "11.0.5") to interface number (e.g., "110005")
+          INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
+
+          echo "Mainline Version: $VERSION"
+          echo "Mainline Interface Number: $INTERFACE_NUMBER"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Get Latest Classic Version Number
+        id: classic_version
+        run: |
+          #!/bin/bash
+          # Fetch JSON data from the Blizztrack API
+          JSON_DATA=$(curl -X GET "${{ env.TOC_FORMAT_API_CLASSIC }}" -H  "accept: application/json")
+
+          # Parse the JSON to extract the version number for "Americas"
+          VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
+
+          # Convert version (e.g., "11.0.5") to interface number (e.g., "110005")
+          INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
+
+          echo "Classic Version: $VERSION"
+          echo "Classic Interface Number: $INTERFACE_NUMBER"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+
       - name: Update Mainline TOC
-        uses: oppzippy/update-toc-action@v1
+        uses: jacobtomlinson/gha-find-replace@v3
         with:
-          toc-path: "$RETAIL_TOC"
-          product: "wow"
+          find: "${{ steps.repo_extract_interface.outputs.mainline_interface_number }}"
+          replace: "${{ steps.mainline_version.outputs.interface_number }}"
+          regex: false
 
       - name: Update Classic TOC
-        uses: oppzippy/update-toc-action@v1
+        uses: jacobtomlinson/gha-find-replace@v3
         with:
-          toc-path: "$CLASSIC_TOC"
-          product: "wow_classic"
+          find: "${{ steps.repo_extract_interface.outputs.classic_interface_number }}"
+          replace: "${{ steps.classic_version.outputs.interface_number }}"
+          regex: false
 
       - name: Extract Post-Update Interface Numbers
         id: extract_interface
@@ -87,36 +131,6 @@ jobs:
             echo "Branch $BRANCH_NAME does not exist"
             echo "branch_exists=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Get Mainline Version Number
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        id: mainline_version
-        run: |
-          #!/bin/bash
-          html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
-
-          # Find the line containing the interface number
-          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.mainline_interface_number }}</code>' | head -n 1)
-          # Extract the version number from the table
-          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
-
-          echo "Mainline Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Get Classic Version Number
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        id: classic_version
-        run: |
-          #!/bin/bash
-          html_content=$(curl -s "$TOC_FORMAT_WEBSITE")
-
-          # Find the line containing the interface number
-          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.classic_interface_number }}</code>' | head -n 1)
-          # Extract the version number from the table
-          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
-
-          echo "Classic Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Find and Replace Mainline Version Number
         if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number) && (steps.mainline_version.outputs.version != '')) }}
@@ -180,23 +194,23 @@ jobs:
         id: changelog_release
         run: |
           #!/bin/bash
-          input_string=""
+          INPUT_STRING=""
 
           # Add Mainline compatibility line if there is a change
           if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
-            input_string+='${{ steps.changelog.outputs.mainline_compatibility }}%0A'
+            INPUT_STRING+='${{ steps.changelog.outputs.mainline_compatibility }}%0A'
           fi
 
           # Add Classic compatibility line if there is a change
           if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
-            input_string+='${{ steps.changelog.outputs.classic_compatibility }}'
+            INPUT_STRING+='${{ steps.changelog.outputs.classic_compatibility }}'
           fi
 
           echo "Input String:"
-          echo "$input_string"
+          echo "$INPUT_STRING"
 
           # Replace white spaces with '%20'
-          ENCODED_STRING=$(echo "$input_string" | sed 's/ /%20/g')
+          ENCODED_STRING=$(echo "$INPUT_STRING" | sed 's/ /%20/g')
 
           echo "Encoded String:"
           echo "$ENCODED_STRING"
@@ -206,26 +220,26 @@ jobs:
         if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         run: |
           #!/bin/bash
-          file_path="README.md"
-          new_lines="## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})
+          FILE_PATCH="README.md"
+          NEW_LINES="## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})
           "
 
           # Add Mainline compatibility line if there is a change
           if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
-          new_lines+="${{ steps.changelog.outputs.mainline_compatibility }}
+          NEW_LINES+="${{ steps.changelog.outputs.mainline_compatibility }}
           "
           fi
 
           # Add Classic compatibility line if there is a change
           if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
-          new_lines+="${{ steps.changelog.outputs.classic_compatibility }}
+          NEW_LINES+="${{ steps.changelog.outputs.classic_compatibility }}
           "
           fi
 
-          echo "$new_lines"
+          echo "$NEW_LINES"
 
-          start_line=$(grep -n "## Change Log" "$file_path" | cut -d: -f1)
-          awk -v start="$start_line" -v lines="$new_lines" 'NR==start+1 {print lines} {print}' "$file_path" >tmpfile && mv tmpfile "$file_path"
+          start_line=$(grep -n "## Change Log" "$FILE_PATCH" | cut -d: -f1)
+          awk -v start="$start_line" -v lines="$NEW_LINES" 'NR==start+1 {print lines} {print}' "$FILE_PATCH" >tmpfile && mv tmpfile "$FILE_PATCH"
 
       - name: Update CHANGELOG.md
         if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
@@ -268,20 +282,17 @@ jobs:
             - Latest Classic Interface Number: `${{ steps.extract_interface.outputs.classic_interface_number }}`
 
             ## Version Checklist
-            - [ ] Review [TOC Interface Version(s)](${{ env.TOC_FORMAT_WEBSITE }})
+            - [ ] Review [Mainline TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_MAINLINE }})
+            - [ ] Review [Classic TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_CLASSIC }})
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
             - [ ] Verify `CHANGELOG.md`
             - [ ] Verify `README.md`
             - [ ] Remove debug code
-            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.repo_semantic_version.outputs.version_tag }}&title=${{ steps.repo_semantic_version.outputs.version_tag }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})
-            - [ ] Verify [CurseForge Package](https://www.curseforge.com/wow/addons/who-taunted/files)
-            - [ ] Verify [WoWInterface Package](https://www.wowinterface.com/downloads/info14842-WhoTaunted.html)
-            - [ ] Verify [Wago Package](https://addons.wago.io/addons/who-taunted)
+            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.get_version_number.outputs.new_version }}&title=${{ steps.get_version_number.outputs.new_version }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})
+            - [ ] Verify [CurseForge Package](${{ env.CURSEFORGE_WEBSITE }})
+            - [ ] Verify [WoWInterface Package](${{ env.WOWINTERFACE_WEBSITE }})
+            - [ ] Verify [Wago Package](${{ env.WAGO_WEBSITE }})
             - [ ] Merge PR
-
-            > PR auto-generated utilizing [update-toc-action][1]
-
-            [1]: https://github.com/marketplace/actions/update-toc-action
           assignees: davie3
           reviewers: davie3
           labels: |
