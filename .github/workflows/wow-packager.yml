@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "**"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Confirmation'
+        required: true
+        type: boolean
 
 jobs:
   release:
