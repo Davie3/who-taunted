@@ -294,6 +294,8 @@ jobs:
             - [ ] Verify [WoWInterface Package](${{ env.WOWINTERFACE_WEBSITE }})
             - [ ] Verify [Wago Package](${{ env.WAGO_WEBSITE }})
             - [ ] Merge PR
+          author: Davie3 <Davie3@users.noreply.github.com>
+          committer: Davie3 <Davie3@users.noreply.github.com>
           assignees: davie3
           reviewers: davie3
           labels: |
