@@ -268,6 +268,7 @@ jobs:
           title: ${{ steps.get_version_number.outputs.new_version }}
           commit-message: Update WoW Version - mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
           branch: mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             ## Current Repo Versions
             - Repo Mainline Version Number: `${{ steps.repo_extract_version.outputs.mainline_version }}`
