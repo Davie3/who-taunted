@@ -67,7 +67,7 @@ jobs:
           # Parse the JSON to extract the version number for "Americas"
           VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
 
-          # Convert version (e.g., "11.0.5") to interface number (e.g., "110005")
+          # Convert version (e.g., "11.0.5") to interface number (e.g., "110007")
           INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
 
           echo "Mainline Version: $VERSION"
@@ -85,7 +85,7 @@ jobs:
           # Parse the JSON to extract the version number for "Americas"
           VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
 
-          # Convert version (e.g., "11.0.5") to interface number (e.g., "110005")
+          # Convert version (e.g., "11.0.5") to interface number (e.g., "110007")
           INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
 
           echo "Classic Version: $VERSION"
