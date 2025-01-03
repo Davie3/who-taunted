@@ -38,14 +38,16 @@ jobs:
         id: check_blizztrack
         run: |
           #!/bin/bash
-          # Test if either Blizztrack Mainline or Classic API is reachable
-          if curl -s --head "${{ env.TOC_FORMAT_API_MAINLINE }}" | grep "200 OK" > /dev/null && \
-            curl -s --head "${{ env.TOC_FORMAT_API_CLASSIC }}" | grep "200 OK" > /dev/null; then
+          # Test Mainline and Classic API for expected response content
+          MAINLINE_RESPONSE=$(curl -s "${{ env.TOC_FORMAT_API_MAINLINE }}")
+          CLASSIC_RESPONSE=$(curl -s "${{ env.TOC_FORMAT_API_CLASSIC }}")
+
+          # Check for expected content in both API responses
+          if echo "$MAINLINE_RESPONSE" | grep -q '"version_name"' && \
+            echo "$CLASSIC_RESPONSE" | grep -q '"version_name"'; then
             BLIZZTRACK_ONLINE=true
-            # echo "blizztrack_online=true" >> $GITHUB_OUTPUT
           else
             BLIZZTRACK_ONLINE=false
-            # echo "blizztrack_online=false" >> $GITHUB_OUTPUT
           fi
 
           echo "Blizztrack Online: $BLIZZTRACK_ONLINE"
@@ -169,7 +171,7 @@ jobs:
           fi
 
       - name: Get Mainline Version Number (Fallback)
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
+        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'false') && (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         id: mainline_version_wiki
         run: |
           #!/bin/bash
@@ -187,7 +189,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Get Classic Version Number (Fallback)
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
+        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'false') && (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
         id: classic_version_wiki
         run: |
           #!/bin/bash
