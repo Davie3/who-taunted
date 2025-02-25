@@ -1,3 +1,6 @@
+## [v2.1.8](https://github.com/Davie3/who-taunted/releases/tag/v2.1.8)
+- 11.1.0 The War Within compatibility.
+
 ## [v2.1.7](https://github.com/Davie3/who-taunted/releases/tag/v2.1.7)
 - 4.4.2 Cataclysm compatibility.
 
