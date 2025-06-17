@@ -1,3 +1,6 @@
+## [v2.1.10](https://github.com/Davie3/who-taunted/releases/tag/v2.1.10)
+- 11.1.7 The War Within compatibility.
+
 ## [v2.1.9](https://github.com/Davie3/who-taunted/releases/tag/v2.1.9)
 - 11.1.5 The War Within compatibility.
 
