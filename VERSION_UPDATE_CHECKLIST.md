@@ -20,6 +20,7 @@
 - [ ] Move previous current version to Legacy table if needed
 - [ ] Update version references in documentation
 - [ ] Update CHANGELOG.md with version compatibility
+- [ ] Check TOC format reference: <https://warcraft.wiki.gg/wiki/TOC_format>
 
 ## GitHub Workflow
 
@@ -27,11 +28,12 @@
   - [ ] Update `MAINLINE_NAME` environment variable (currently: "The War Within")
   - [ ] Update `CLASSIC_NAME` environment variable (currently: "Mists of Pandaria")
   - [ ] Update `RETAIL_TOC` to point to new mainline TOC file (currently: "WhoTaunted.toc")
-  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file (currently: "WhoTaunted_MoP.toc")
+  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file (currently: "WhoTaunted_Mists.toc")
   - [ ] Verify workflow triggers and schedule (currently runs hourly)
   - [ ] Check API endpoints are current:
     - [ ] Blizztrack mainline API: <https://blizztrack.com/api/manifest/wow/versions>
     - [ ] Blizztrack classic API: <https://blizztrack.com/api/manifest/wow_classic/versions>
+    - [ ] TOC format reference: <https://warcraft.wiki.gg/wiki/TOC_format>
 
 ## Testing & Validation
 

@@ -1,4 +1,4 @@
-## [v2.1.12](https://github.com/Davie3/who-taunted/releases/tag/v2.1.12)
+## [v2.1.13](https://github.com/Davie3/who-taunted/releases/tag/v2.1.13)
 - 5.5.0 Mists of Pandaria compatibility.
 
 ## [v2.1.10](https://github.com/Davie3/who-taunted/releases/tag/v2.1.10)
