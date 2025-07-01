@@ -1,5 +1,5 @@
 ## [v2.1.11](https://github.com/Davie3/who-taunted/releases/tag/v2.1.11)
-- 5.5.0 Cataclysm compatibility.
+- 5.5.0 Mists of Pandaria compatibility.
 
 ## [v2.1.10](https://github.com/Davie3/who-taunted/releases/tag/v2.1.10)
 - 11.1.7 The War Within compatibility.
