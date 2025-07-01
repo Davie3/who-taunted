@@ -11,6 +11,7 @@
 - [ ] Create `WhoTaunted_[Version].toc` with correct interface number
 - [ ] Update interface version (format: XXYYZZ for X.Y.Z)
 - [ ] Reference correct database loader (`Data\load-db-[version].xml`)
+- [ ] **Note**: Check if any TOC files need to remain on specific interface versions (e.g., Cata on `40402`)
 
 ## Documentation
 
