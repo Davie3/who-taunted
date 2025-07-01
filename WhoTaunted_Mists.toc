@@ -1,0 +1,27 @@
+## Author: @project-author@
+## Interface: 50500
+## Notes: Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
+## OptionalDeps: Ace3
+## SavedVariables: WhoTauntedDB
+## Title: Who Taunted?
+## Version: @project-version@
+## IconAtlas: UI-CastingBar-Shield
+## X-Embeds: Ace3
+## X-Date: @project-date-iso@
+## X-Website: https://www.curseforge.com/wow/addons/who-taunted
+## X-License: GPLv3
+## X-Category: Tank
+## X-Localizations: enUS, deDE, esEs, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
+## X-Curse-Project-ID: 20051
+## X-WoWI-ID: 14842
+## X-Wago-ID: L6JDJxGv
+
+#@no-lib-strip@
+Libs\load-embeds.xml
+#@end-no-lib-strip@
+
+Localization\load-locales.xml
+WhoTaunted.lua
+
+Data\load-db-mop.xml
+Data\load-options.xml

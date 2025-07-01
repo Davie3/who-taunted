@@ -6,9 +6,9 @@ on:
 
 env:
   MAINLINE_NAME: The War Within
-  CLASSIC_NAME: Cataclysm
+  CLASSIC_NAME: Mists of Pandaria
   RETAIL_TOC: WhoTaunted.toc
-  CLASSIC_TOC: WhoTaunted_Cata.toc
+  CLASSIC_TOC: WhoTaunted_Mists.toc
   CHANGELOG: CHANGELOG.md
   README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
@@ -392,6 +392,7 @@ jobs:
             - Latest Classic Interface Number: `${{ steps.extract_interface.outputs.classic_interface_number }}`
 
             ## Version Checklist
+            - [ ] Review [TOC Format Reference](${{ env.TOC_FORMAT_WEBSITE }})
             - [ ] Review [Mainline TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_MAINLINE }})
             - [ ] Review [Classic TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_CLASSIC }})
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})

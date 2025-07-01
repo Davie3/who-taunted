@@ -1,30 +1,30 @@
 # Who Taunted?
 Addon project for World of Warcraft.
 
-* https://www.curseforge.com/wow/addons/who-taunted
-* https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
-* https://addons.wago.io/addons/who-taunted
+- <https://www.curseforge.com/wow/addons/who-taunted>
+- <https://www.wowinterface.com/downloads/info14842-WhoTaunted.html>
+- <https://addons.wago.io/addons/who-taunted>
 
 ## About
 Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
 
 ## Issues
 
-Please report any issues on GitHub - https://github.com/Davie3/who-taunted/issues
+Please report any issues on GitHub - <https://github.com/Davie3/who-taunted/issues>
 
 ## Localization
 
-Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taunted/localization
+Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-taunted/localization>
 
 ## Supported Taunts
 
-| Class            | The War Within (11.1.7)                                  | Cataclysm (4.4.2)
+| Class            | The War Within (11.1.7)                                  | Mists of Pandaria (5.5.0)
 | ---              | ---                                                      | ---
 | **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE)   | Taunt; Mocking Blow; Challenging Shout (AOE)
 | **Paladin**      | Hand of Reckoning; Final Stand (AOE)                     | Hand of Reckoning; Righteous Defense (AOE)
 | **Druid**        | Growl                                                    | Growl; Challenging Roar (AOE)
 | **Death Knight** | Death Grip (Blood); Dark Command                         | Death Grip (Blood); Dark Command
-| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                      | N/A
+| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                      | Provoke; Provoke on Ox Statue (AOE)
 | **Demon Hunter** | Torment                                                  | N/A
 | **Hunter**       | N/A                                                      | Distracting Shot
 | **Shaman**       | N/A                                                      | Unleash Earth
@@ -32,20 +32,22 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 
 ## Supported Taunts (Legacy)
 
-| Class            | Dragonflight (10.2.7)                               | Shadowlands (9.2.7)                   | TBC (2.5.4)                          | Wrath (3.4.3)                         |
-| ---              | ---                                                 | ---                                   | ---                                  | ---                                   |
-| **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Mocking Blow; Challenging Shout (AOE) | Taunt; Mocking Blow; Challenging Shout (AOE) |
-| **Paladin**      | Hand of Reckoning; Final Stand (AOE)                | Hand of Reckoning; Final Stand (AOE)  | Hand of Reckoning; Righteous Defense (AOE) | Hand of Reckoning; Righteous Defense (AOE) |
-| **Druid**        | Growl                                               | Growl                                | Growl; Challenging Roar (AOE)        | Growl; Challenging Roar (AOE)        |
-| **Death Knight** | Death Grip (Blood); Dark Command                    | Death Grip (Blood); Dark Command      | Death Grip (Blood); Dark Command     | Death Grip (Blood); Dark Command     |
-| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                 | Provoke; Provoke on Ox Statue (AOE)   | N/A                                  | N/A                                  |
-| **Demon Hunter** | Torment                                             | Torment                              | N/A                                  | N/A                                  |
-| **Hunter**       | N/A                                                 | N/A                                   | Distracting Shot                     | Distracting Shot                     |
-| **Shaman**       | N/A                                                 | N/A                                   | Unleash Earth                        | Unleash Earth                        |
-| **Warlock**      | N/A                                                 | N/A                                   | Challenging Howl (Metamorphosis)     | Challenging Howl (Metamorphosis)     |
-
+| Class            | Dragonflight (10.2.7)                               | Shadowlands (9.2.7)                   | TBC (2.5.4)                          | Wrath (3.4.3)                         | Cataclysm (4.4.2)                    |
+| ---              | ---                                                 | ---                                   | ---                                  | ---                                   | ---                                  |
+| **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Mocking Blow; Challenging Shout (AOE) | Taunt; Mocking Blow; Challenging Shout (AOE) | Taunt; Mocking Blow; Challenging Shout (AOE) |
+| **Paladin**      | Hand of Reckoning; Final Stand (AOE)                | Hand of Reckoning; Final Stand (AOE)  | Hand of Reckoning; Righteous Defense (AOE) | Hand of Reckoning; Righteous Defense (AOE) | Hand of Reckoning; Righteous Defense (AOE) |
+| **Druid**        | Growl                                               | Growl                                | Growl; Challenging Roar (AOE)        | Growl; Challenging Roar (AOE)        | Growl; Challenging Roar (AOE)        |
+| **Death Knight** | Death Grip (Blood); Dark Command                    | Death Grip (Blood); Dark Command      | Death Grip (Blood); Dark Command     | Death Grip (Blood); Dark Command     | Death Grip (Blood); Dark Command     |
+| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                 | Provoke; Provoke on Ox Statue (AOE)   | N/A                                  | N/A                                  | N/A                                  |
+| **Demon Hunter** | Torment                                             | Torment                              | N/A                                  | N/A                                  | N/A                                  |
+| **Hunter**       | N/A                                                 | N/A                                   | Distracting Shot                     | Distracting Shot                     | Distracting Shot                     |
+| **Shaman**       | N/A                                                 | N/A                                   | Unleash Earth                        | Unleash Earth                        | Unleash Earth                        |
+| **Warlock**      | N/A                                                 | N/A                                   | Challenging Howl (Metamorphosis)     | Challenging Howl (Metamorphosis)     | Challenging Howl (Metamorphosis)     |
 
 ## Change Log
+## [v2.1.13](https://github.com/Davie3/who-taunted/releases/tag/v2.1.13)
+- 5.5.0 Mists of Pandaria compatibility.
+
 ## [v2.1.10](https://github.com/Davie3/who-taunted/releases/tag/v2.1.10)
 - 11.1.7 The War Within compatibility.
 
