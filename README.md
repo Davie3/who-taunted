@@ -1,20 +1,20 @@
 # Who Taunted?
 Addon project for World of Warcraft.
 
-* https://www.curseforge.com/wow/addons/who-taunted
-* https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
-* https://addons.wago.io/addons/who-taunted
+- <https://www.curseforge.com/wow/addons/who-taunted>
+- <https://www.wowinterface.com/downloads/info14842-WhoTaunted.html>
+- <https://addons.wago.io/addons/who-taunted>
 
 ## About
 Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
 
 ## Issues
 
-Please report any issues on GitHub - https://github.com/Davie3/who-taunted/issues
+Please report any issues on GitHub - <https://github.com/Davie3/who-taunted/issues>
 
 ## Localization
 
-Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taunted/localization
+Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-taunted/localization>
 
 ## Supported Taunts
 
@@ -43,7 +43,6 @@ Help localize on Curseforge! - https://legacy.curseforge.com/wow/addons/who-taun
 | **Hunter**       | N/A                                                 | N/A                                   | Distracting Shot                     | Distracting Shot                     | Distracting Shot                     |
 | **Shaman**       | N/A                                                 | N/A                                   | Unleash Earth                        | Unleash Earth                        | Unleash Earth                        |
 | **Warlock**      | N/A                                                 | N/A                                   | Challenging Howl (Metamorphosis)     | Challenging Howl (Metamorphosis)     | Challenging Howl (Metamorphosis)     |
-
 
 ## Change Log
 ## [v2.1.11](https://github.com/Davie3/who-taunted/releases/tag/v2.1.11)

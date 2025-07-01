@@ -26,6 +26,7 @@ ignore:
   - .gitignore
   - .github
   - .release
+  - .markdownlint.json
   - VERSION_UPDATE_CHECKLIST.md
 
 manual-changelog:

@@ -15,8 +15,10 @@
 ## Documentation
 
 - [ ] Update README.md supported taunts table
+- [ ] Update README-CF.md supported taunts table
 - [ ] Move previous current version to Legacy table if needed
 - [ ] Update version references in documentation
+- [ ] Update CHANGELOG.md with version compatibility
 
 ## GitHub Workflow
 
@@ -33,7 +35,6 @@
 
 ## Release Process
 
-- [ ] Update CHANGELOG.md with version compatibility
 - [ ] Create version tag/release
 - [ ] Verify packages deploy to CurseForge/WoWInterface/Wago
 - [ ] Test in-game functionality
