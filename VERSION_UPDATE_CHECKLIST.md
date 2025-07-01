@@ -1,4 +1,4 @@
-# WoW Addon Version Update Checklist
+# Who Taunted? Update Checklist
 
 ## Database Files
 
@@ -23,8 +23,14 @@
 ## GitHub Workflow
 
 - [ ] Update `.github/workflows/toc-updater.yml`:
-- [ ] Update `CLASSIC_NAME` environment variable
-- [ ] Update `CLASSIC_TOC` to point to new TOC file
+  - [ ] Update `MAINLINE_NAME` environment variable (currently: "The War Within")
+  - [ ] Update `CLASSIC_NAME` environment variable (currently: "Mists of Pandaria")
+  - [ ] Update `RETAIL_TOC` to point to new mainline TOC file (currently: "WhoTaunted.toc")
+  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file (currently: "WhoTaunted_MoP.toc")
+  - [ ] Verify workflow triggers and schedule (currently runs hourly)
+  - [ ] Check API endpoints are current:
+    - [ ] Blizztrack mainline API: <https://blizztrack.com/api/manifest/wow/versions>
+    - [ ] Blizztrack classic API: <https://blizztrack.com/api/manifest/wow_classic/versions>
 
 ## Testing & Validation
 
