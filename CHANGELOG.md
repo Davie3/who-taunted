@@ -1,3 +1,7 @@
+## [v2.1.18](https://github.com/Davie3/who-taunted/releases/tag/v2.1.18)
+- 11.2.7 The War Within compatibility.
+- 5.5.3 Mists of Pandaria compatibility.
+
 ## [v2.1.17](https://github.com/Davie3/who-taunted/releases/tag/v2.1.17)
 - 5.5.2 Mists of Pandaria compatibility.
 
