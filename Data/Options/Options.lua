@@ -347,6 +347,11 @@ WhoTaunted.options = {
 }
 
 function WhoTaunted:CheckOptions()
+	--Guard against being called before db is initialized
+	if (not WhoTaunted.db) then
+		return;
+	end
+
 	--Disable all options if the client is Midnight (12.0+)
 	if (isMidnight) then
 		WhoTaunted.options.args.Disabled.disabled = true;
