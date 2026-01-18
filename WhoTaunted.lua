@@ -45,6 +45,19 @@ function WhoTaunted:ShowMidnightWarning()
 	frame:SetHeight(220);
 	frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
 	frame:EnableResize(false);
+	frame:ClearAllPoints();
+	frame:SetPoint("TOP", UIParent, "TOP", 0, -100);
+
+	local frameName = "WhoTauntedMidnightWarningFrame";
+	_G[frameName] = frame.frame;
+	frame.frame:SetScript("OnKeyDown", function(self, key)
+		if key == "ESCAPE" then
+			self:SetPropagateKeyboardInput(false);
+			frame:Hide();
+		else
+			self:SetPropagateKeyboardInput(true);
+		end
+	end);
 
 	local headerGroup = AceGUI:Create("SimpleGroup");
 	headerGroup:SetFullWidth(true);
