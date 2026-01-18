@@ -118,10 +118,10 @@ function WhoTaunted:OnInitialize()
 	end
 
 	if (isMidnight) then
-		WhoTaunted:Print("|cffff6b6bNOT Compatible with Midnight (12.0+)|r");
-		WhoTaunted:Print("Taunt tracking is disabled due to |cffffd93dBlizzard's combat API restrictions|r.");
-		WhoTaunted:Print("|cff69db7cClassic versions|r remain supported.");
-		WhoTaunted:Print("|cffffff78https://github.com/Davie3/who-taunted|r");
+		WhoTaunted:Print("|cffff6b6bNot Compatible with Midnight (12.0+)|r");
+		WhoTaunted:Print("|cffffd93dBlizzard's API restrictions|r prevent addons from accessing combat log data.");
+		WhoTaunted:Print("This addon continues to work in |cff69db7cWoW Classic|r.");
+		WhoTaunted:Print("See |cffffff78https://github.com/Davie3/who-taunted|r for more details.");
 
 		if (WhoTaunted.db.profile.MidnightWarningShown == false) then
 			WhoTaunted:ShowMidnightWarning();
