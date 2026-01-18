@@ -122,7 +122,11 @@ function WhoTaunted:OnInitialize()
 		WhoTaunted:Print("Taunt tracking is disabled due to |cffffd93dBlizzard's combat API restrictions|r.");
 		WhoTaunted:Print("|cff69db7cClassic versions|r remain supported.");
 		WhoTaunted:Print("|cffffff78https://github.com/Davie3/who-taunted|r");
-		WhoTaunted:ShowMidnightWarning();
+
+		if (WhoTaunted.db.profile.MidnightWarningShown == false) then
+			WhoTaunted:ShowMidnightWarning();
+			WhoTaunted.db.profile.MidnightWarningShown = true;
+		end
 	else
 		WhoTaunted:Print("|cffffff78"..WhoTauntedVersion.."|r "..L["has loaded! Please report any issues on GitHub"].." - |cffffff78https://github.com/Davie3/who-taunted/issues|r");
 	end

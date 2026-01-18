@@ -19,5 +19,6 @@ WhoTaunted.defaults = {
 		AnounceFailsOutput = WhoTaunted.OutputTypes.Self,
 		DefaultToSelf = true,
 		ConvertedProfiles = false,
+		MidnightWarningShown = false,
 	},
 }
