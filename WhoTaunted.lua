@@ -48,8 +48,6 @@ function WhoTaunted:ShowMidnightWarning()
 	frame:ClearAllPoints();
 	frame:SetPoint("TOP", UIParent, "TOP", 0, -100);
 
-	local frameName = "WhoTauntedMidnightWarningFrame";
-	_G[frameName] = frame.frame;
 	frame.frame:SetScript("OnKeyDown", function(self, key)
 		if key == "ESCAPE" then
 			self:SetPropagateKeyboardInput(false);
