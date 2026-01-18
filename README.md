@@ -8,6 +8,17 @@ Addon project for World of Warcraft.
 ## About
 Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
 
+## Midnight Compatibility
+Who Taunted does not work in WoW Midnight (12.0+). Blizzard's combat API restrictions prevent addons from accessing real-time combat data.
+- <https://worldofwarcraft.blizzard.com/en-us/news/24246290>
+
+**Supported:**
+- WoW Classic (all versions)
+- The War Within (11.x)
+
+**Not Supported:**
+- Midnight (12.0+) and future retail expansions unless Blizzard makes any changes
+
 ## Issues
 
 Please report any issues on GitHub - <https://github.com/Davie3/who-taunted/issues>
@@ -51,7 +62,7 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 
 ## [v2.1.17](https://github.com/Davie3/who-taunted/releases/tag/v2.1.17)
 - 5.5.2 Mists of Pandaria compatibility.
-- 
+
 ## [v2.1.16](https://github.com/Davie3/who-taunted/releases/tag/v2.1.16)
 - 11.2.5 The War Within compatibility.
 

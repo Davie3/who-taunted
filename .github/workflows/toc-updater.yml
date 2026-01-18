@@ -5,7 +5,7 @@ on:
     - cron: 00 * * * *
 
 env:
-  MAINLINE_NAME: The War Within
+  MAINLINE_NAME: Midnight
   CLASSIC_NAME: Mists of Pandaria
   RETAIL_TOC: WhoTaunted.toc
   CLASSIC_TOC: WhoTaunted_Mists.toc
@@ -116,7 +116,7 @@ jobs:
           echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Update Mainline TOC (Blizztrack)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'true' }}
+        if: false  # Disabled: Mainline uses multi-interface format, addon disabled for 12.0+
         uses: jacobtomlinson/gha-find-replace@v3
         with:
           find: "${{ steps.repo_extract_interface.outputs.mainline_interface_number }}"
@@ -132,7 +132,7 @@ jobs:
           regex: false
 
       - name: Update Mainline TOC (Fallback)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'false' }}
+        if: false  # Disabled: Mainline uses multi-interface format, addon disabled for 12.0+
         uses: oppzippy/update-toc-action@v1
         with:
           toc-path: "$RETAIL_TOC"
