@@ -373,7 +373,7 @@ jobs:
 
       - name: Create Pull Request
         if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.mainline_version.outputs.version != '' && steps.classic_version.outputs.version != '')) }}
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           title: ${{ steps.get_version_number.outputs.new_version }}
           commit-message: Update WoW Version - mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
