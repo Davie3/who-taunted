@@ -39,10 +39,10 @@ local Env = {
 function WhoTaunted:ShowMidnightWarning()
 	local frame = AceGUI:Create("Frame");
 	frame:SetTitle("Who Taunted?");
-	frame:SetStatusText("Addon disabled for Midnight (12.0+)");
+	frame:SetStatusText("Midnight (12.0+)");
 	frame:SetLayout("List");
-	frame:SetWidth(420);
-	frame:SetHeight(210);
+	frame:SetWidth(320);
+	frame:SetHeight(220);
 	frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
 	frame:EnableResize(false);
 
@@ -60,13 +60,13 @@ function WhoTaunted:ShowMidnightWarning()
 	local headerLabel = AceGUI:Create("Label");
 	headerLabel:SetText("|cffff6b6bNot Compatible with Midnight|r");
 	headerLabel:SetFont(GameFontNormalLarge:GetFont());
-	headerLabel:SetWidth(340);
+	headerLabel:SetWidth(240);
 	headerGroup:AddChild(headerLabel);
 
 	local warningText = "|cffffffffWho Taunted? cannot function in |cffff6b6bMidnight (12.0+)|r|cffffffff.|r\n\n" ..
 		"|cffffd93dBlizzard's API restrictions|r |cffffffffprevent addons from accessing combat log data.|r\n\n" ..
 		"|cffffffffThis addon continues to work in |cff69db7cWoW Classic|r|cffffffff.|r\n\n" ..
-		"|cffffff78https://github.com/Davie3/who-taunted|r";
+		"|cffffffffSee |cffffff78https://github.com/Davie3/who-taunted|r for more details.";
 
 	local label = AceGUI:Create("Label");
 	label:SetText("\n" .. warningText);
