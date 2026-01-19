@@ -6,12 +6,12 @@ Tracks player taunts and displays who they taunted, what ability they used to ta
 
 ### ⚠️ Midnight Compatibility
 
-**Who Taunted does not work in WoW Midnight (12.0+).** Blizzard's combat API restrictions prevent addons from accessing real-time combat log data which is essential for this addon to function. See [Issue #77](https://github.com/Davie3/who-taunted/issues/77) for more details and my personal thoughts.
+**Who Taunted does not support WoW Midnight (12.0+).** Blizzard's combat API restrictions prevent addons from accessing real-time combat log data which is essential for this addon to function. See [Issue #77](https://github.com/Davie3/who-taunted/issues/77) for more details and my personal thoughts.
 
 See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](https://worldofwarcraft.blizzard.com/en-us/news/24246290)
 
 **Supported:**
-- WoW Classic (TBC+)
+- WoW Classic (TBC, Wrath, Mists)
 - The War Within (11.x)
 
 **Not Supported:**
@@ -23,10 +23,12 @@ See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](
 
 ### Mainline and Classic
 
-- The War Within
-- Mists of Pandaria
+- The War Within (11.x)
+- Mists of Pandaria (5.x)
+- Wrath Classic (3.x)
+- The Burning Crusade (2.x)
 
-Full Taunt list on GitHub - <https://github.com/Davie3/who-taunted>
+Full taunt list and changelog on GitHub - <https://github.com/Davie3/who-taunted>
 
 ## Localization
 
