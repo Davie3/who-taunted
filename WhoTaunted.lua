@@ -1,5 +1,6 @@
 ﻿WhoTaunted = LibStub("AceAddon-3.0"):NewAddon("WhoTaunted", "AceEvent-3.0", "AceConsole-3.0", "AceTimer-3.0", "AceComm-3.0", "AceSerializer-3.0")
 local AceConfig = LibStub("AceConfigDialog-3.0");
+local AceGUI = LibStub("AceGUI-3.0");
 local L = LibStub("AceLocale-3.0"):GetLocale("WhoTaunted");
 
 local PlayerName, PlayerRealm = UnitName("player");
@@ -35,11 +36,64 @@ local Env = {
 	},
 };
 
+function WhoTaunted:ShowMidnightWarning()
+	local frame = AceGUI:Create("Frame");
+	frame:SetTitle("Who Taunted?");
+	frame:SetStatusText("Midnight (12.0+)");
+	frame:SetLayout("List");
+	frame:SetWidth(320);
+	frame:SetHeight(220);
+	frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end);
+	frame:EnableResize(false);
+	frame:ClearAllPoints();
+	frame:SetPoint("TOP", UIParent, "TOP", 0, -100);
+
+	frame.frame:SetScript("OnKeyDown", function(self, key)
+		if key == "ESCAPE" then
+			self:SetPropagateKeyboardInput(false);
+			frame:Hide();
+		else
+			self:SetPropagateKeyboardInput(true);
+		end
+	end);
+
+	local headerGroup = AceGUI:Create("SimpleGroup");
+	headerGroup:SetFullWidth(true);
+	headerGroup:SetLayout("Flow");
+	frame:AddChild(headerGroup);
+
+	local icon = AceGUI:Create("Icon");
+	icon:SetImage("Interface\\DialogFrame\\UI-Dialog-Icon-AlertNew");
+	icon:SetImageSize(32, 32);
+	icon:SetWidth(40);
+	headerGroup:AddChild(icon);
+
+	local headerLabel = AceGUI:Create("Label");
+	headerLabel:SetText("|cffff6b6bNot Compatible with Midnight|r");
+	headerLabel:SetFont(GameFontNormalLarge:GetFont());
+	headerLabel:SetWidth(240);
+	headerGroup:AddChild(headerLabel);
+
+	local warningText = "|cffffffffWho Taunted? cannot function in |cffff6b6bMidnight (12.0+)|r|cffffffff.|r\n\n" ..
+		"|cffffd93dBlizzard's API restrictions|r |cffffffffprevent addons from accessing combat log data.|r\n\n" ..
+		"|cffffffffThis addon continues to work in |cff69db7cWoW Classic|r|cffffffff.|r\n\n" ..
+		"|cffffffffSee |cffffff78https://github.com/Davie3/who-taunted|r for more details.";
+
+	local label = AceGUI:Create("Label");
+	label:SetText("\n" .. warningText);
+	label:SetFullWidth(true);
+	frame:AddChild(label);
+end
+
 function WhoTaunted:OnInitialize()
-	WhoTaunted:RegisterEvent("PLAYER_ENTERING_WORLD", "EnteringWorldOnEvent");
-	WhoTaunted:RegisterEvent("PLAYER_REGEN_ENABLED", "RegenEnabledOnEvent");
-	WhoTaunted:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZoneChangedOnEvent");
-	WhoTaunted:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLog");
+	local isMidnight = (tocVersion) and (tocVersion >= 120000);
+
+	if (not isMidnight) then
+		WhoTaunted:RegisterEvent("PLAYER_ENTERING_WORLD", "EnteringWorldOnEvent");
+		WhoTaunted:RegisterEvent("PLAYER_REGEN_ENABLED", "RegenEnabledOnEvent");
+		WhoTaunted:RegisterEvent("ZONE_CHANGED_NEW_AREA", "ZoneChangedOnEvent");
+		WhoTaunted:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", "CombatLog");
+	end
 	WhoTaunted:RegisterEvent("UPDATE_CHAT_WINDOWS", "UpdateChatWindowsOnEvent");
 	WhoTaunted:RegisterEvent("GUILD_ROSTER_UPDATE", "GuildRosterUpdateOnEvent");
 	WhoTaunted:RegisterEvent("GROUP_ROSTER_UPDATE", "GroupRosterUpdateOnEvent");
@@ -63,7 +117,19 @@ function WhoTaunted:OnInitialize()
 		WhoTaunted.db.profile.ConvertedProfiles = true;
 	end
 
-	WhoTaunted:Print("|cffffff78"..WhoTauntedVersion.."|r "..L["has loaded! Please report any issues on GitHub"].." - |cffffff78https://github.com/Davie3/who-taunted/issues|r");
+	if (isMidnight) then
+		WhoTaunted:Print("|cffff6b6bNot Compatible with Midnight (12.0+)|r");
+		WhoTaunted:Print("|cffffd93dBlizzard's API restrictions|r prevent addons from accessing combat log data.");
+		WhoTaunted:Print("This addon continues to work in |cff69db7cWoW Classic|r.");
+		WhoTaunted:Print("See |cffffff78https://github.com/Davie3/who-taunted|r for more details.");
+
+		if (WhoTaunted.db.profile.MidnightWarningShown == false) then
+			WhoTaunted:ShowMidnightWarning();
+			WhoTaunted.db.profile.MidnightWarningShown = true;
+		end
+	else
+		WhoTaunted:Print("|cffffff78"..WhoTauntedVersion.."|r "..L["has loaded! Please report any issues on GitHub"].." - |cffffff78https://github.com/Davie3/who-taunted/issues|r");
+	end
 end
 
 function WhoTaunted:OnEnable()

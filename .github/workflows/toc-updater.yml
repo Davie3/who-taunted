@@ -2,20 +2,40 @@ name: Update TOC Interface version(s)
 
 on:
   schedule:
-    - cron: 00 * * * *
+    - cron: "0 * * * *"
+  workflow_dispatch:
 
 env:
-  MAINLINE_NAME: The War Within
-  CLASSIC_NAME: Mists of Pandaria
-  RETAIL_TOC: WhoTaunted.toc
-  CLASSIC_TOC: WhoTaunted_Mists.toc
+  # JSON config for supported expansions
+  # Keys match p3lim flavor names, values contain display name, TOC file, and BlizzTrack product
+  EXPANSIONS: |
+    {
+      "retail": {
+        "name": "Midnight",
+        "toc": "WhoTaunted_Mainline.toc",
+        "blizztrack": "wow"
+      },
+      "mists": {
+        "name": "Mists of Pandaria",
+        "toc": "WhoTaunted_Mists.toc",
+        "blizztrack": "wow_classic"
+      },
+      "wrath": {
+        "name": "Wrath of the Lich King",
+        "toc": "WhoTaunted_Wrath.toc",
+        "blizztrack": "wow_classic_titan"
+      },
+      "tbc": {
+        "name": "The Burning Crusade",
+        "toc": "WhoTaunted_TBC.toc",
+        "blizztrack": "wow_anniversary"
+      }
+    }
+  BLIZZTRACK_BASE: https://blizztrack.com/view
   CHANGELOG: CHANGELOG.md
   README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
-  TOC_FORMAT_WEBSITE_MAINLINE: https://blizztrack.com/view/wow?type=versions
-  TOC_FORMAT_API_MAINLINE: https://blizztrack.com/api/manifest/wow/versions
-  TOC_FORMAT_WEBSITE_CLASSIC: https://blizztrack.com/view/wow_classic?type=versions
-  TOC_FORMAT_API_CLASSIC: https://blizztrack.com/api/manifest/wow_classic/versions
+  LATEST_PATCH_INFO: https://warcraft.wiki.gg/wiki/Template:LatestPatchInfo
   API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
   CURSEFORGE_WEBSITE: https://www.curseforge.com/wow/addons/who-taunted/files
   WOWINTERFACE_WEBSITE: https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
@@ -34,243 +54,94 @@ jobs:
       - name: Fetch Repo Tags
         run: git fetch --tags
 
-      - name: Check Blizztrack API Status
-        id: check_blizztrack
+      - name: Get current interface values
+        id: before
         run: |
-          #!/bin/bash
-          # Test Mainline and Classic API for expected response content
-          MAINLINE_RESPONSE=$(curl -s "${{ env.TOC_FORMAT_API_MAINLINE }}")
-          CLASSIC_RESPONSE=$(curl -s "${{ env.TOC_FORMAT_API_CLASSIC }}")
+          # Create a hash of all Interface lines for change detection
+          echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
-          # Check for expected content in both API responses
-          if echo "$MAINLINE_RESPONSE" | grep -q '"version_name"' && \
-            echo "$CLASSIC_RESPONSE" | grep -q '"version_name"'; then
-            BLIZZTRACK_ONLINE=true
-          else
-            BLIZZTRACK_ONLINE=false
+          # Dynamically capture interface values for each expansion
+          VALUES='{}'
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
+            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
+          done
+          echo "values=$VALUES" >> $GITHUB_OUTPUT
+
+      - name: Update TOC Interface Versions
+        uses: p3lim/toc-interface-updater@v4
+        with:
+          flavor: |
+            retail
+            mists
+            wrath
+            tbc
+          beta: true
+          ptr: true
+
+      - name: Ensure static interface values for Wrath
+        run: |
+          # Add 30405 to Wrath if not present (legacy support for WoW Anniversary)
+          if ! grep -q "30405" WhoTaunted_Wrath.toc; then
+            sed -i 's/## Interface: \(.*\)/## Interface: 30405, \1/' WhoTaunted_Wrath.toc
           fi
 
-          echo "Blizztrack Online: $BLIZZTRACK_ONLINE"
-          echo "blizztrack_online=$BLIZZTRACK_ONLINE" >> $GITHUB_OUTPUT
-
-      - name: Extract Repo Interface Numbers
-        id: repo_extract_interface
+      - name: Get updated interface values
+        id: after
         run: |
-          #!/bin/bash
-          MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
-          echo "Repo Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
-          echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+          # Create a hash of all Interface lines for change detection
+          echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
-          CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
-          echo "Repo Classic Interface Number: $CLASSIC_INTERFACE_NUMBER"
-          echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
+          # Dynamically capture interface values for each expansion
+          VALUES='{}'
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
+            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
+          done
+          echo "values=$VALUES" >> $GITHUB_OUTPUT
 
-      - name: Extract Repo Versions
-        id: repo_extract_version
+      - name: Check for changes
+        id: changes
         run: |
-          #!/bin/bash
-          MAINLINE_VERSION=$(grep -oP '${{ env.MAINLINE_NAME }} \(\K[^\)]+' $README)
-          echo "Mainline version: $MAINLINE_VERSION"
-          echo "mainline_version=$MAINLINE_VERSION" >> $GITHUB_OUTPUT
+          if [ "${{ steps.before.outputs.interfaces }}" != "${{ steps.after.outputs.interfaces }}" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
 
-          CLASSIC_VERSION=$(grep -oP '${{ env.CLASSIC_NAME }} \(\K[^\)]+' $README)
-          echo "Classic version: $CLASSIC_VERSION"
-          echo "classic_version=$CLASSIC_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Get Latest Mainline Version Number (Blizztrack)
-        id: mainline_version_blizztrack
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'true' }}
+      - name: Generate branch name
+        if: steps.changes.outputs.changed == 'true'
+        id: branch
         run: |
-          #!/bin/bash
-          # Fetch JSON data from Blizztrack API
-          JSON_DATA=$(curl -s "${{ env.TOC_FORMAT_API_MAINLINE }}" -H "accept: application/json")
+          # Create a branch name based on interface hash
+          BRANCH_NAME="toc-update-${{ steps.after.outputs.interfaces }}"
+          echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
-          # Parse the JSON to extract the version number for "Americas"
-          VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
-
-          # Convert version to interface number
-          INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
-
-          echo "Mainline Version: $VERSION"
-          echo "Mainline Interface Number: $INTERFACE_NUMBER"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Get Latest Classic Version Number (Blizztrack)
-        id: classic_version_blizztrack
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'true' }}
-        run: |
-          #!/bin/bash
-          # Fetch JSON data from the Blizztrack API
-          JSON_DATA=$(curl -X GET "${{ env.TOC_FORMAT_API_CLASSIC }}" -H  "accept: application/json")
-
-          # Parse the JSON to extract the version number for "Americas"
-          VERSION=$(echo "$JSON_DATA" | jq -r '.result.data[] | select(.name == "Americas") | .version_name | split(".")[:3] | join(".")')
-
-          # Convert version to interface number
-          INTERFACE_NUMBER=$(echo "$VERSION" | awk -F. '{printf "%d%02d%02d", $1, $2, $3}')
-
-          echo "Classic Version: $VERSION"
-          echo "Classic Interface Number: $INTERFACE_NUMBER"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Update Mainline TOC (Blizztrack)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'true' }}
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "${{ steps.repo_extract_interface.outputs.mainline_interface_number }}"
-          replace: "${{ steps.mainline_version_blizztrack.outputs.interface_number }}"
-          regex: false
-
-      - name: Update Classic TOC (Blizztrack)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'true' }}
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "${{ steps.repo_extract_interface.outputs.classic_interface_number }}"
-          replace: "${{ steps.classic_version_blizztrack.outputs.interface_number }}"
-          regex: false
-
-      - name: Update Mainline TOC (Fallback)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'false' }}
-        uses: oppzippy/update-toc-action@v1
-        with:
-          toc-path: "$RETAIL_TOC"
-          product: "wow"
-
-      - name: Update Classic TOC (Fallback)
-        if: ${{ steps.check_blizztrack.outputs.blizztrack_online == 'false' }}
-        uses: oppzippy/update-toc-action@v1
-        with:
-          toc-path: "$CLASSIC_TOC"
-          product: "wow_classic"
-
-      - name: Extract Post-Update Interface Numbers
-        id: extract_interface
-        run: |
-          #!/bin/bash
-          MAINLINE_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $RETAIL_TOC)
-          echo "Post-update Mainline Interface Number: $MAINLINE_INTERFACE_NUMBER"
-          echo "mainline_interface_number=$MAINLINE_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-          CLASSIC_INTERFACE_NUMBER=$(grep -oP '## Interface: \K\d+' $CLASSIC_TOC)
-          echo "Post-update Classic Interface Number: $CLASSIC_INTERFACE_NUMBER"
-          echo "classic_interface_number=$CLASSIC_INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Check if new version Branch Already Exists
+      - name: Check if branch already exists
+        if: steps.changes.outputs.changed == 'true'
         id: check_branch
         run: |
-          #!/bin/bash
-          BRANCH_NAME=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
-          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
-            echo "Branch $BRANCH_NAME exists"
-            echo "branch_exists=true" >> $GITHUB_OUTPUT
+          if git ls-remote --heads origin "${{ steps.branch.outputs.name }}" | grep -q "${{ steps.branch.outputs.name }}"; then
+            echo "Branch ${{ steps.branch.outputs.name }} exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Branch $BRANCH_NAME does not exist"
-            echo "branch_exists=false" >> $GITHUB_OUTPUT
+            echo "Branch ${{ steps.branch.outputs.name }} does not exist"
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get Mainline Version Number (Fallback)
-        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'false') && (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        id: mainline_version_wiki
+      - name: Get next version number
+        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
+        id: version
         run: |
-          #!/bin/bash
-
-          # Fall back to warcraft.wiki.gg
-          html_content=$(curl -s "${{ env.TOC_FORMAT_WEBSITE }}")
-
-          # Find the line containing the interface number
-          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.mainline_interface_number }}</code>' | head -n 1)
-
-          # Extract the version number from the table
-          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
-
-          echo "Mainline Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Get Classic Version Number (Fallback)
-        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'false') && (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        id: classic_version_wiki
-        run: |
-          #!/bin/bash
-
-          # Fall back to warcraft.wiki.gg
-          html_content=$(curl -s "${{ env.TOC_FORMAT_WEBSITE }}")
-
-          # Find the line containing the interface number
-          line=$(echo "$html_content" | grep -B 1 '<code>${{ steps.extract_interface.outputs.classic_interface_number }}</code>' | head -n 1)
-
-          # Extract the version number from the table
-          VERSION=$(echo "$line" | sed -n 's/.*<td>\(.*\)<\/td>.*/\1/p')
-
-          echo "Classic Version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Set Mainline Version Number
-        id: mainline_version
-        run: |
-          #!/bin/bash
-
-          if '${{ steps.check_blizztrack.outputs.blizztrack_online }}' == 'true'; then
-            VERSION="${{ steps.mainline_version_blizztrack.outputs.version }}"
-            INTERFACE_NUMBER="${{ steps.mainline_version_blizztrack.outputs.interface_number }}"
-          else
-            VERSION="${{ steps.mainline_version_wiki.outputs.version }}"
-            INTERFACE_NUMBER="${{ steps.extract_interface.outputs.mainline_interface_number }}"
-          fi
-
-          echo "Mainline Version: $VERSION"
-          echo "Mainline Interface Number: $INTERFACE_NUMBER"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Set Classic Version Number
-        id: classic_version
-        run: |
-          #!/bin/bash
-
-          if '${{ steps.check_blizztrack.outputs.blizztrack_online }}' == 'true'; then
-            VERSION="${{ steps.classic_version_blizztrack.outputs.version }}"
-            INTERFACE_NUMBER="${{ steps.classic_version_blizztrack.outputs.interface_number }}"
-          else
-            VERSION="${{ steps.classic_version_wiki.outputs.version }}"
-            INTERFACE_NUMBER="${{ steps.extract_interface.outputs.classic_interface_number }}"
-          fi
-
-          echo "Classic Version: $VERSION"
-          echo "Classic Interface Number: $INTERFACE_NUMBER"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "interface_number=$INTERFACE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Find and Replace Mainline Version Number (Blizztrack)
-        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'true') && (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number) && (steps.mainline_version.outputs.version != '')) }}
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "${{ env.MAINLINE_NAME }} (${{ steps.repo_extract_version.outputs.mainline_version}})"
-          replace: "${{ env.MAINLINE_NAME }} (${{ steps.mainline_version.outputs.version }})"
-          regex: false
-
-      - name: Find and Replace Classic Version Number (Blizztrack)
-        if: ${{ (steps.check_blizztrack.outputs.blizztrack_online == 'true') && (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.classic_version.outputs.version != '')) }}
-        uses: jacobtomlinson/gha-find-replace@v3
-        with:
-          find: "${{ env.CLASSIC_NAME }} (${{ steps.repo_extract_version.outputs.classic_version }})"
-          replace: "${{ env.CLASSIC_NAME }} (${{ steps.classic_version.outputs.version }})"
-          regex: false
-
-      - name: Get Next who-taunted Increment Version
-        id: get_version_number
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        run: |
-          #!/bin/bash
           # Get the latest tag and remove the 'v' prefix
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) | sed 's/^v//')
           echo "Latest tag: $LATEST_TAG"
 
           # Parse the latest tag into major, minor, patch
           IFS='.' read -r major minor patch <<<"$LATEST_TAG"
-
-          # Increment patch version (adjust as needed for minor or major)
+          # Increment patch version
           patch=$((patch + 1))
 
           # Create the new version tag
@@ -278,128 +149,139 @@ jobs:
           echo "New tag: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build Changelog Compatibility Strings
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.mainline_version.outputs.version != '' && steps.classic_version.outputs.version != '')) }}
-        id: changelog
+      - name: Build changelog and PR content
+        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
+        id: content
         run: |
-          #!/bin/bash
-          MAINLINE_COMPATIBILITY_STRING=""
-          CLASSIC_COMPATIBILITY_STRING=""
+          # Function to convert interface number(s) to version string(s)
+          # Handles comma-separated multi-interface format (e.g., "110207, 120000, 120001" -> "11.2.7, 12.0.0, 12.0.1")
+          interface_to_version() {
+            local input="$1"
+            local result=""
+            IFS=',' read -ra interfaces <<< "$input"
+            for interface in "${interfaces[@]}"; do
+              interface=$(echo "$interface" | tr -d ' ')
+              local len=${#interface}
+              local version=""
+              if [ $len -eq 6 ]; then
+                local major=$((10#${interface:0:2}))
+                local minor=$((10#${interface:2:2}))
+                local patch=$((10#${interface:4:2}))
+                version="$major.$minor.$patch"
+              else
+                local major=$((10#${interface:0:1}))
+                local minor=$((10#${interface:1:2}))
+                local patch=$((10#${interface:3:2}))
+                version="$major.$minor.$patch"
+              fi
+              if [ -n "$result" ]; then
+                result="$result, $version"
+              else
+                result="$version"
+              fi
+            done
+            echo "$result"
+          }
 
-          if [ "${{ steps.repo_extract_interface.outputs.mainline_interface_number }}" != "${{ steps.extract_interface.outputs.mainline_interface_number }}" ]; then
-              MAINLINE_COMPATIBILITY_STRING="- ${{ steps.mainline_version.outputs.version }} ${{ env.MAINLINE_NAME }} compatibility."
-          fi
-          if [ "${{ steps.repo_extract_interface.outputs.classic_interface_number }}" != "${{ steps.extract_interface.outputs.classic_interface_number }}" ]; then
-              CLASSIC_COMPATIBILITY_STRING="- ${{ steps.classic_version.outputs.version }} ${{ env.CLASSIC_NAME }} compatibility."
-          fi
+          BEFORE='${{ steps.before.outputs.values }}'
+          AFTER='${{ steps.after.outputs.values }}'
+          EXPANSIONS='${{ env.EXPANSIONS }}'
 
-          echo "Compatibility:"
-          echo "$MAINLINE_COMPATIBILITY_STRING"
-          echo "mainline_compatibility=$MAINLINE_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
-          echo "$CLASSIC_COMPATIBILITY_STRING"
-          echo "classic_compatibility=$CLASSIC_COMPATIBILITY_STRING" >> $GITHUB_OUTPUT
+          # Build changelog entries
+          CHANGELOG_ENTRIES=""
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
+            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
+            if [ "$before_val" != "$after_val" ]; then
+              name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
+              version=$(interface_to_version "$after_val")
+              CHANGELOG_ENTRIES+="- $version $name compatibility.\n"
+            fi
+          done
+          CHANGELOG_ENTRIES=$(echo -e "$CHANGELOG_ENTRIES" | sed '/^$/d')
 
-      - name: Build Release/Tag Compatibility String
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        id: changelog_release
-        run: |
-          #!/bin/bash
-          INPUT_STRING=""
+          # Build PR table rows
+          TABLE_ROWS=""
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+            toc=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].toc')
+            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
+            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
+            TABLE_ROWS+="| $toc | \`$before_val\` | \`$after_val\` |\n"
+          done
+          TABLE_ROWS=$(echo -e "$TABLE_ROWS" | sed '/^$/d')
 
-          # Add Mainline compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
-            INPUT_STRING+='${{ steps.changelog.outputs.mainline_compatibility }}%0A'
-          fi
+          # Build BlizzTrack review links
+          BLIZZTRACK_LINKS=""
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+            name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
+            product=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].blizztrack')
+            BLIZZTRACK_LINKS+="- [ ] Review [$name BlizzTrack](${{ env.BLIZZTRACK_BASE }}/$product?type=versions)\n"
+          done
+          BLIZZTRACK_LINKS=$(echo -e "$BLIZZTRACK_LINKS" | sed '/^$/d')
 
-          # Add Classic compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
-            INPUT_STRING+='${{ steps.changelog.outputs.classic_compatibility }}'
-          fi
+          # Output all content (using printf to avoid extra newlines)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$CHANGELOG_ENTRIES" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          echo "Input String:"
-          echo "$INPUT_STRING"
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$TABLE_ROWS" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          # Replace white spaces with '%20'
-          ENCODED_STRING=$(echo "$INPUT_STRING" | sed 's/ /%20/g')
-
-          echo "Encoded String:"
-          echo "$ENCODED_STRING"
-          echo "encoded_string=$ENCODED_STRING" >> $GITHUB_OUTPUT
-
-      - name: Update README.md
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
-        run: |
-          #!/bin/bash
-          FILE_PATCH="README.md"
-          NEW_LINES="## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})
-          "
-
-          # Add Mainline compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
-          NEW_LINES+="${{ steps.changelog.outputs.mainline_compatibility }}
-          "
-          fi
-
-          # Add Classic compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
-          NEW_LINES+="${{ steps.changelog.outputs.classic_compatibility }}
-          "
-          fi
-
-          echo "$NEW_LINES"
-
-          start_line=$(grep -n "## Change Log" "$FILE_PATCH" | cut -d: -f1)
-          awk -v start="$start_line" -v lines="$NEW_LINES" 'NR==start+1 {print lines} {print}' "$FILE_PATCH" >tmpfile && mv tmpfile "$FILE_PATCH"
+          echo "blizztrack<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$BLIZZTRACK_LINKS" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Update CHANGELOG.md
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && (steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) }}
+        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
         run: |
-          #!/bin/bash
-          echo "## [${{ steps.get_version_number.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.get_version_number.outputs.new_version }})" >> temp_changelog.txt
-
-          # Add Mainline compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.mainline_compatibility }}" != "" ]; then
-            echo "${{ steps.changelog.outputs.mainline_compatibility }}" >> temp_changelog.txt
-          fi
-
-          # Add Classic compatibility line if there is a change
-          if [ "${{ steps.changelog.outputs.classic_compatibility }}" != "" ]; then
-            echo "${{ steps.changelog.outputs.classic_compatibility }}" >> temp_changelog.txt
-          fi
-
-          echo "" >> temp_changelog.txt
-          cat $CHANGELOG >> temp_changelog.txt
+          {
+            echo "## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})"
+            echo "${{ steps.content.outputs.changelog }}"
+            echo ""
+            cat $CHANGELOG
+          } > temp_changelog.txt
           mv temp_changelog.txt $CHANGELOG
 
+      - name: Update README.md
+        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
+        run: |
+          NEW_LINES="## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})
+          ${{ steps.content.outputs.changelog }}
+          "
+
+          start_line=$(grep -n "## Change Log" "$README" | cut -d: -f1)
+          awk -v start="$start_line" -v lines="$NEW_LINES" 'NR==start+1 {print lines} {print}' "$README" > tmpfile && mv tmpfile "$README"
+
       - name: Create Pull Request
-        if: ${{ (steps.check_branch.outputs.branch_exists == 'false') && ((steps.repo_extract_interface.outputs.mainline_interface_number != steps.extract_interface.outputs.mainline_interface_number || steps.repo_extract_interface.outputs.classic_interface_number != steps.extract_interface.outputs.classic_interface_number) && (steps.mainline_version.outputs.version != '' && steps.classic_version.outputs.version != '')) }}
+        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
         uses: peter-evans/create-pull-request@v8
         with:
-          title: ${{ steps.get_version_number.outputs.new_version }}
-          commit-message: Update WoW Version - mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
-          branch: mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}
+          title: ${{ steps.version.outputs.new_version }}
+          commit-message: Update TOC Interface versions - ${{ steps.branch.outputs.name }}
+          branch: ${{ steps.branch.outputs.name }}
           body: |
-            ## Current Repo Versions
-            - Repo Mainline Version Number: `${{ steps.repo_extract_version.outputs.mainline_version }}`
-            - Repo Mainline Interface Number: `${{ steps.repo_extract_interface.outputs.mainline_interface_number }}`
-            - Repo Classic Version Number: `${{ steps.repo_extract_version.outputs.classic_version }}`
-            - Repo Classic Interface Number: `${{ steps.repo_extract_interface.outputs.classic_interface_number }}`
+            ## Interface Version Changes
 
-            ## Latest WoW Versions
-            - Latest Mainline Version Number: `${{ steps.mainline_version.outputs.version }}`
-            - Latest Mainline Interface Number: `${{ steps.extract_interface.outputs.mainline_interface_number }}`
-            - Latest Classic Version Number: `${{ steps.classic_version.outputs.version }}`
-            - Latest Classic Interface Number: `${{ steps.extract_interface.outputs.classic_interface_number }}`
+            | TOC File | Before | After |
+            |----------|--------|-------|
+            ${{ steps.content.outputs.table }}
+
+            ## Changelog
+            ${{ steps.content.outputs.changelog }}
 
             ## Version Checklist
             - [ ] Review [TOC Format Reference](${{ env.TOC_FORMAT_WEBSITE }})
-            - [ ] Review [Mainline TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_MAINLINE }})
-            - [ ] Review [Classic TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_CLASSIC }})
+            - [ ] Review [Latest Patch Info](${{ env.LATEST_PATCH_INFO }})
+            ${{ steps.content.outputs.blizztrack }}
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
             - [ ] Verify `CHANGELOG.md`
             - [ ] Verify `README.md`
             - [ ] Remove debug code
-            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.get_version_number.outputs.new_version }}&title=${{ steps.get_version_number.outputs.new_version }}&target=mainline-${{ steps.extract_interface.outputs.mainline_interface_number }}-classic-${{ steps.extract_interface.outputs.classic_interface_number }}&prerelease=0&body=${{ steps.changelog_release.outputs.encoded_string }})
+            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.version.outputs.new_version }}&title=${{ steps.version.outputs.new_version }}&target=${{ steps.branch.outputs.name }})
             - [ ] Verify [CurseForge Package](${{ env.CURSEFORGE_WEBSITE }})
             - [ ] Verify [WoWInterface Package](${{ env.WOWINTERFACE_WEBSITE }})
             - [ ] Verify [Wago Package](${{ env.WAGO_WEBSITE }})

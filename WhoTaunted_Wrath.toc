@@ -1,10 +1,11 @@
 ## Author: @project-author@
-## Interface: 30403
+## Interface: 30405, 38000
 ## Notes: Tracks player taunts and displays who they taunted, what ability they used to taunt, and if it failed in some way.
 ## OptionalDeps: Ace3
 ## SavedVariables: WhoTauntedDB
 ## Title: Who Taunted?
 ## Version: @project-version@
+## IconAtlas: UI-CastingBar-Shield
 ## X-Embeds: Ace3
 ## X-Date: @project-date-iso@
 ## X-Website: https://www.curseforge.com/wow/addons/who-taunted

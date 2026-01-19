@@ -13,14 +13,26 @@ WhoTaunted.OutputTypes = {
     Officer = CHAT_MSG_OFFICER,
 };
 
+local isMidnight = (tocVersion) and (tocVersion >= 120000);
+
 WhoTaunted.options = {
     name = "Who Taunted? "..C_AddOns.GetAddOnMetadata("WhoTaunted", "Version"),
     type = 'group',
     args = {
+        MidnightWarning = {
+            order = 5,
+            type = "description",
+            name = "|cffff6b6bNot Compatible with Midnight (12.0+)|r\n\n" ..
+                "|cffffd93dBlizzard's API restrictions|r prevent addons from accessing combat log data.\n\n" ..
+                "This addon continues to work in |cff69db7cWoW Classic|r.\n\n" ..
+                "See |cffffff78https://github.com/Davie3/who-taunted|r for more details.\n\n",
+            hidden = not isMidnight,
+        },
         Intro = {
             order = 10,
             type = "description",
-            name = C_AddOns.GetAddOnMetadata("WhoTaunted", "Notes")
+            name = C_AddOns.GetAddOnMetadata("WhoTaunted", "Notes"),
+            hidden = isMidnight,
         },
         Disabled = {
             type = "toggle",
@@ -335,6 +347,21 @@ WhoTaunted.options = {
 }
 
 function WhoTaunted:CheckOptions()
+	--Guard against being called before db is initialized
+	if (not WhoTaunted.db) then
+		return;
+	end
+
+	--Disable all options if the client is Midnight (12.0+)
+	if (isMidnight) then
+		WhoTaunted.options.args.Disabled.disabled = true;
+		WhoTaunted.options.args.General.disabled = true;
+		WhoTaunted.options.args.Announcements.disabled = true;
+		WhoTaunted.options.args.Profiles.disabled = true;
+		WhoTaunted.options.args.FAQ.disabled = true;
+		return;
+	end
+
 	--Disable Righteous Defense options if the client is Classic Era or Mists
 	if (tocVersion) and ((tocVersion >= 50000) or (tocVersion < 20000)) then
 		WhoTaunted.db.profile.RighteousDefenseTarget = false;
