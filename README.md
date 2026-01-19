@@ -55,6 +55,9 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 | **Shaman**       | Unleash Earth                        |
 
 ## Change Log
+## [v2.2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.2.1)
+
+
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
