@@ -57,8 +57,13 @@ jobs:
       - name: Get current interface values
         id: before
         run: |
-          # Create a hash of all Interface lines for change detection
-          echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          # Create a hash of Interface lines for tracked TOC files only
+          TOC_FILES=""
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            TOC_FILES="$TOC_FILES $toc"
+          done
+          echo "interfaces=$(grep -h '## Interface:' $TOC_FILES | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
           # Dynamically capture interface values for each expansion
           VALUES='{}'
@@ -80,6 +85,23 @@ jobs:
           beta: true
           ptr: true
 
+      - name: Discard changes to untracked TOC files
+        run: |
+          # Get list of tracked TOC files from EXPANSIONS
+          TRACKED_FILES=""
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            TRACKED_FILES="$TRACKED_FILES $toc"
+          done
+
+          # Discard changes to any .toc files that aren't tracked
+          for file in *.toc; do
+            if [[ ! " $TRACKED_FILES " =~ " $file " ]]; then
+              echo "Discarding changes to untracked file: $file"
+              git checkout HEAD -- "$file" 2>/dev/null || true
+            fi
+          done
+
       - name: Ensure static interface values for Wrath
         run: |
           # Add 30405 to Wrath if not present (legacy support for WoW Anniversary)
@@ -90,8 +112,13 @@ jobs:
       - name: Get updated interface values
         id: after
         run: |
-          # Create a hash of all Interface lines for change detection
-          echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          # Create a hash of Interface lines for tracked TOC files only
+          TOC_FILES=""
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            TOC_FILES="$TOC_FILES $toc"
+          done
+          echo "interfaces=$(grep -h '## Interface:' $TOC_FILES | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
           # Dynamically capture interface values for each expansion
           VALUES='{}'
