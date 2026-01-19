@@ -189,7 +189,7 @@ jobs:
 
           # Build changelog entries
           CHANGELOG_ENTRIES=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
             before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
             after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
             if [ "$before_val" != "$after_val" ]; then
@@ -202,7 +202,7 @@ jobs:
 
           # Build PR table rows
           TABLE_ROWS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
             toc=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].toc')
             before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
             after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
@@ -212,7 +212,7 @@ jobs:
 
           # Build BlizzTrack review links
           BLIZZTRACK_LINKS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
             name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
             product=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].blizztrack')
             BLIZZTRACK_LINKS+="- [ ] Review [$name BlizzTrack](${{ env.BLIZZTRACK_BASE }}/$product?type=versions)\n"
