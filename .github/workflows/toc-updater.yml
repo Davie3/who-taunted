@@ -6,15 +6,36 @@ on:
   workflow_dispatch:
 
 env:
-  MAINLINE_NAME: Midnight
-  MISTS_NAME: Mists of Pandaria
-  WRATH_NAME: Wrath of the Lich King
-  TBC_NAME: The Burning Crusade
+  # JSON config for supported expansions
+  # Keys match p3lim flavor names, values contain display name, TOC file, and BlizzTrack product
+  EXPANSIONS: |
+    {
+      "retail": {
+        "name": "Midnight",
+        "toc": "WhoTaunted_Mainline.toc",
+        "blizztrack": "wow"
+      },
+      "mists": {
+        "name": "Mists of Pandaria",
+        "toc": "WhoTaunted_Mists.toc",
+        "blizztrack": "wow_classic"
+      },
+      "wrath": {
+        "name": "Wrath of the Lich King",
+        "toc": "WhoTaunted_Wrath.toc",
+        "blizztrack": "wow_classic_titan"
+      },
+      "tbc": {
+        "name": "The Burning Crusade",
+        "toc": "WhoTaunted_TBC.toc",
+        "blizztrack": "wow_anniversary"
+      }
+    }
+  BLIZZTRACK_BASE: https://blizztrack.com/view
   CHANGELOG: CHANGELOG.md
   README: README.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
-  TOC_FORMAT_WEBSITE_MAINLINE: https://blizztrack.com/view/wow?type=versions
-  TOC_FORMAT_WEBSITE_CLASSIC: https://blizztrack.com/view/wow_classic?type=versions
+  LATEST_PATCH_INFO: https://warcraft.wiki.gg/wiki/Template:LatestPatchInfo
   API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
   CURSEFORGE_WEBSITE: https://www.curseforge.com/wow/addons/who-taunted/files
   WOWINTERFACE_WEBSITE: https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
@@ -36,13 +57,17 @@ jobs:
       - name: Get current interface values
         id: before
         run: |
+          # Create a hash of all Interface lines for change detection
           echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
-          # Capture current interface values for PR description
-          echo "retail=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Mainline.toc)" >> $GITHUB_OUTPUT
-          echo "mists=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Mists.toc)" >> $GITHUB_OUTPUT
-          echo "wrath=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Wrath.toc)" >> $GITHUB_OUTPUT
-          echo "tbc=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_TBC.toc)" >> $GITHUB_OUTPUT
+          # Dynamically capture interface values for each expansion
+          VALUES='{}'
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
+            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
+          done
+          echo "values=$VALUES" >> $GITHUB_OUTPUT
 
       - name: Update TOC Interface Versions
         uses: p3lim/toc-interface-updater@v4
@@ -65,13 +90,17 @@ jobs:
       - name: Get updated interface values
         id: after
         run: |
+          # Create a hash of all Interface lines for change detection
           echo "interfaces=$(grep -h '## Interface:' *.toc | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
-          # Capture updated interface values for PR description
-          echo "retail=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Mainline.toc)" >> $GITHUB_OUTPUT
-          echo "mists=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Mists.toc)" >> $GITHUB_OUTPUT
-          echo "wrath=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_Wrath.toc)" >> $GITHUB_OUTPUT
-          echo "tbc=$(grep -oP '## Interface: \K[0-9, ]+' WhoTaunted_TBC.toc)" >> $GITHUB_OUTPUT
+          # Dynamically capture interface values for each expansion
+          VALUES='{}'
+          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
+            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
+            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
+            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
+          done
+          echo "values=$VALUES" >> $GITHUB_OUTPUT
 
       - name: Check for changes
         id: changes
@@ -112,7 +141,6 @@ jobs:
 
           # Parse the latest tag into major, minor, patch
           IFS='.' read -r major minor patch <<<"$LATEST_TAG"
-
           # Increment patch version
           patch=$((patch + 1))
 
@@ -121,53 +149,90 @@ jobs:
           echo "New tag: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build changelog entries
+      - name: Build changelog and PR content
         if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        id: changelog
+        id: content
         run: |
-          # Function to convert interface number to version string
-          # e.g., 110105 -> 11.1.5, 50409 -> 5.4.9
+          # Function to convert interface number(s) to version string(s)
+          # Handles comma-separated multi-interface format (e.g., "110207, 120000, 120001" -> "11.2.7, 12.0.0, 12.0.1")
           interface_to_version() {
-            local interface=$(echo "$1" | cut -d',' -f1 | tr -d ' ')
-            local len=${#interface}
-            if [ $len -eq 6 ]; then
-              local major=$((10#${interface:0:2}))
-              local minor=$((10#${interface:2:2}))
-              local patch=$((10#${interface:4:2}))
-              echo "$major.$minor.$patch"
-            else
-              local major=$((10#${interface:0:1}))
-              local minor=$((10#${interface:1:2}))
-              local patch=$((10#${interface:3:2}))
-              echo "$major.$minor.$patch"
-            fi
+            local input="$1"
+            local result=""
+            IFS=',' read -ra interfaces <<< "$input"
+            for interface in "${interfaces[@]}"; do
+              interface=$(echo "$interface" | tr -d ' ')
+              local len=${#interface}
+              local version=""
+              if [ $len -eq 6 ]; then
+                local major=$((10#${interface:0:2}))
+                local minor=$((10#${interface:2:2}))
+                local patch=$((10#${interface:4:2}))
+                version="$major.$minor.$patch"
+              else
+                local major=$((10#${interface:0:1}))
+                local minor=$((10#${interface:1:2}))
+                local patch=$((10#${interface:3:2}))
+                version="$major.$minor.$patch"
+              fi
+              if [ -n "$result" ]; then
+                result="$result, $version"
+              else
+                result="$version"
+              fi
+            done
+            echo "$result"
           }
 
+          BEFORE='${{ steps.before.outputs.values }}'
+          AFTER='${{ steps.after.outputs.values }}'
+          EXPANSIONS='${{ env.EXPANSIONS }}'
+
+          # Build changelog entries
           CHANGELOG_ENTRIES=""
-
-          if [ "${{ steps.before.outputs.retail }}" != "${{ steps.after.outputs.retail }}" ]; then
-            VERSION=$(interface_to_version "${{ steps.after.outputs.retail }}")
-            CHANGELOG_ENTRIES+="- $VERSION ${{ env.MAINLINE_NAME }} compatibility.\n"
-          fi
-          if [ "${{ steps.before.outputs.mists }}" != "${{ steps.after.outputs.mists }}" ]; then
-            VERSION=$(interface_to_version "${{ steps.after.outputs.mists }}")
-            CHANGELOG_ENTRIES+="- $VERSION ${{ env.MISTS_NAME }} compatibility.\n"
-          fi
-          if [ "${{ steps.before.outputs.wrath }}" != "${{ steps.after.outputs.wrath }}" ]; then
-            VERSION=$(interface_to_version "${{ steps.after.outputs.wrath }}")
-            CHANGELOG_ENTRIES+="- $VERSION ${{ env.WRATH_NAME }} compatibility.\n"
-          fi
-          if [ "${{ steps.before.outputs.tbc }}" != "${{ steps.after.outputs.tbc }}" ]; then
-            VERSION=$(interface_to_version "${{ steps.after.outputs.tbc }}")
-            CHANGELOG_ENTRIES+="- $VERSION ${{ env.TBC_NAME }} compatibility.\n"
-          fi
-
-          # Remove trailing newline
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
+            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
+            if [ "$before_val" != "$after_val" ]; then
+              name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
+              version=$(interface_to_version "$after_val")
+              CHANGELOG_ENTRIES+="- $version $name compatibility.\n"
+            fi
+          done
           CHANGELOG_ENTRIES=$(echo -e "$CHANGELOG_ENTRIES" | sed '/^$/d')
 
-          # Store for later use (escape newlines for GitHub Actions)
-          echo "entries<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$CHANGELOG_ENTRIES" >> $GITHUB_OUTPUT
+          # Build PR table rows
+          TABLE_ROWS=""
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+            toc=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].toc')
+            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
+            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
+            TABLE_ROWS+="| $toc | \`$before_val\` | \`$after_val\` |\n"
+          done
+          TABLE_ROWS=$(echo -e "$TABLE_ROWS" | sed '/^$/d')
+
+          # Build BlizzTrack review links
+          BLIZZTRACK_LINKS=""
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
+            name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
+            product=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].blizztrack')
+            BLIZZTRACK_LINKS+="- [ ] Review [$name BlizzTrack](${{ env.BLIZZTRACK_BASE }}/$product?type=versions)\n"
+          done
+          BLIZZTRACK_LINKS=$(echo -e "$BLIZZTRACK_LINKS" | sed '/^$/d')
+
+          # Output all content (using printf to avoid extra newlines)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$CHANGELOG_ENTRIES" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "table<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$TABLE_ROWS" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "blizztrack<<EOF" >> $GITHUB_OUTPUT
+          printf '%s' "$BLIZZTRACK_LINKS" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Update CHANGELOG.md
@@ -175,7 +240,7 @@ jobs:
         run: |
           {
             echo "## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})"
-            echo "${{ steps.changelog.outputs.entries }}"
+            echo "${{ steps.content.outputs.changelog }}"
             echo ""
             cat $CHANGELOG
           } > temp_changelog.txt
@@ -185,7 +250,7 @@ jobs:
         if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
         run: |
           NEW_LINES="## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})
-          ${{ steps.changelog.outputs.entries }}
+          ${{ steps.content.outputs.changelog }}
           "
 
           start_line=$(grep -n "## Change Log" "$README" | cut -d: -f1)
@@ -203,18 +268,15 @@ jobs:
 
             | TOC File | Before | After |
             |----------|--------|-------|
-            | WhoTaunted_Mainline.toc (Retail) | `${{ steps.before.outputs.retail }}` | `${{ steps.after.outputs.retail }}` |
-            | WhoTaunted_Mists.toc | `${{ steps.before.outputs.mists }}` | `${{ steps.after.outputs.mists }}` |
-            | WhoTaunted_Wrath.toc | `${{ steps.before.outputs.wrath }}` | `${{ steps.after.outputs.wrath }}` |
-            | WhoTaunted_TBC.toc | `${{ steps.before.outputs.tbc }}` | `${{ steps.after.outputs.tbc }}` |
+            ${{ steps.content.outputs.table }}
 
             ## Changelog
-            ${{ steps.changelog.outputs.entries }}
+            ${{ steps.content.outputs.changelog }}
 
             ## Version Checklist
             - [ ] Review [TOC Format Reference](${{ env.TOC_FORMAT_WEBSITE }})
-            - [ ] Review [Mainline TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_MAINLINE }})
-            - [ ] Review [Classic TOC Interface Version](${{ env.TOC_FORMAT_WEBSITE_CLASSIC }})
+            - [ ] Review [Latest Patch Info](${{ env.LATEST_PATCH_INFO }})
+            ${{ steps.content.outputs.blizztrack }}
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
             - [ ] Verify `CHANGELOG.md`
             - [ ] Verify `README.md`
