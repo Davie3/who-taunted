@@ -1,3 +1,6 @@
+## [v2.2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.2.1)
+- 12.0.0, 12.0.1 Midnight compatibility.
+
 ## [v2.2](https://github.com/Davie3/who-taunted/releases/tag/v2.2)
 **Important Notice:** Who Taunted does not support WoW Midnight (12.0+). Blizzard's combat API restrictions prevent addons from accessing real-time combat log data which is essential for this addon to function. See [Issue #77](https://github.com/Davie3/who-taunted/issues/77) for more details.
 - 2.5.5 The Burning Crusade compatibility.
