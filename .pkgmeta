@@ -27,7 +27,7 @@ ignore:
   - .github
   - .release
   - .markdownlint.json
-  - VERSION_UPDATE_CHECKLIST.md
+  - Docs
 
 manual-changelog:
   filename: CHANGELOG.md
