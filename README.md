@@ -57,7 +57,7 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 ## Change Log
 ## [v2.2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.2.1)
 - 12.0.0, 12.0.1 Midnight compatibility.
-
+- Archive 11.x The War Within
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
