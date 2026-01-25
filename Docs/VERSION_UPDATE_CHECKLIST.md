@@ -25,10 +25,10 @@
 ## GitHub Workflow
 
 - [ ] Update `.github/workflows/toc-updater.yml`:
-  - [ ] Update `MAINLINE_NAME` environment variable (currently: "The War Within")
-  - [ ] Update `CLASSIC_NAME` environment variable (currently: "Mists of Pandaria")
-  - [ ] Update `RETAIL_TOC` to point to new mainline TOC file (currently: "WhoTaunted.toc")
-  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file (currently: "WhoTaunted_Mists.toc")
+  - [ ] Update `MAINLINE_NAME` environment variable
+  - [ ] Update `CLASSIC_NAME` environment variable
+  - [ ] Update `RETAIL_TOC` to point to new mainline TOC file
+  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file
   - [ ] Verify workflow triggers and schedule (currently runs hourly)
   - [ ] Check API endpoints are current:
     - [ ] Blizztrack mainline API: <https://blizztrack.com/api/manifest/wow/versions>
