@@ -16,7 +16,6 @@ Tracks player taunts and displays who they taunted, what ability they used to ta
 >
 > **Supported:**
 > - WoW Classic (TBC, Wrath, Mists)
-> - The War Within (11.x)
 >
 > **Not Supported:**
 > - Midnight (12.0+) and future retail expansions unless Blizzard makes any changes
@@ -31,28 +30,30 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 
 ## Supported Taunts
 
-| Class            | The War Within (11.x)                                | Mists of Pandaria (5.x)                              | Wrath (3.x)                                          | TBC (2.x)
-| ---              | ---                                                  | ---                                                  | ---                                                  | ---
-| **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Challenging Shout (AOE)                       | Taunt; Mocking Blow; Challenging Shout (AOE)         | Taunt; Mocking Blow; Challenging Shout (AOE)
-| **Paladin**      | Hand of Reckoning; Final Stand (AOE)                 | Hand of Reckoning; Righteous Defense (AOE)           | Hand of Reckoning; Righteous Defense (AOE)           | Righteous Defense (AOE)
-| **Druid**        | Growl                                                | Growl; Challenging Roar (AOE)                        | Growl; Challenging Roar (AOE)                        | Growl; Challenging Roar (AOE)
-| **Death Knight** | Death Grip (Blood); Dark Command                     | Death Grip; Dark Command                             | Death Grip (Blood); Dark Command                     | N/A
-| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                  | Provoke; Provoke on Ox Statue (AOE)                  | N/A                                                  | N/A
-| **Demon Hunter** | Torment                                              | N/A                                                  | N/A                                                  | N/A
-| **Hunter**       | N/A                                                  | Distracting Shot                                     | Distracting Shot                                     | N/A
-| **Shaman**       | N/A                                                  | Unleash Earth                                        | Stoneclaw Totem                                      | Stoneclaw Totem
-| **Warlock**      | N/A                                                  | Challenging Howl (Metamorphosis)                     | Challenging Howl (Metamorphosis)                     | N/A
+| Class            | Mists of Pandaria (5.x)                              | Wrath (3.x)                                          | TBC (2.x)
+| ---              | ---                                                  | ---                                                  | ---
+| **Warrior**      | Taunt; Challenging Shout (AOE)                       | Taunt; Mocking Blow; Challenging Shout (AOE)         | Taunt; Mocking Blow; Challenging Shout (AOE)
+| **Paladin**      | Hand of Reckoning; Righteous Defense (AOE)           | Hand of Reckoning; Righteous Defense (AOE)           | Righteous Defense (AOE)
+| **Druid**        | Growl; Challenging Roar (AOE)                        | Growl; Challenging Roar (AOE)                        | Growl; Challenging Roar (AOE)
+| **Death Knight** | Death Grip; Dark Command                             | Death Grip (Blood); Dark Command                     | N/A
+| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                  | N/A                                                  | N/A
+| **Hunter**       | Distracting Shot                                     | Distracting Shot                                     | N/A
+| **Shaman**       | Unleash Earth                                        | Stoneclaw Totem                                      | Stoneclaw Totem
+| **Warlock**      | Challenging Howl (Metamorphosis)                     | Challenging Howl (Metamorphosis)                     | N/A
 
 ## Supported Taunts (Legacy)
 
-| Class            | Cataclysm (4.x)                      |
-| ---              | ---                                  |
-| **Warrior**      | Taunt; Challenging Shout (AOE)       |
-| **Paladin**      | Hand of Reckoning; Righteous Defense (AOE) |
-| **Druid**        | Growl; Challenging Roar (AOE)        |
-| **Death Knight** | Death Grip; Dark Command              |
-| **Hunter**       | Distracting Shot                     |
-| **Shaman**       | Unleash Earth                        |
+| Class            | The War Within (11.x)                                | Cataclysm (4.x)                      |
+| ---              | ---                                                  | ---                                  |
+| **Warrior**      | Taunt; Challenging Shout (AOE); Disrupting Shout (AOE) | Taunt; Challenging Shout (AOE)       |
+| **Paladin**      | Hand of Reckoning; Final Stand (AOE)                 | Hand of Reckoning; Righteous Defense (AOE) |
+| **Druid**        | Growl                                                | Growl; Challenging Roar (AOE)        |
+| **Death Knight** | Death Grip (Blood); Dark Command                     | Death Grip; Dark Command              |
+| **Monk**         | Provoke; Provoke on Ox Statue (AOE)                  | N/A                                  |
+| **Demon Hunter** | Torment                                              | N/A                                  |
+| **Hunter**       | N/A                                                  | Distracting Shot                     |
+| **Shaman**       | N/A                                                  | Unleash Earth                        |
+| **Warlock**      | N/A                                                  | N/A                                  |
 
 ## Change Log
 ## [v2.2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.2.1)
