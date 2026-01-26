@@ -12,7 +12,6 @@ See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](
 
 **Supported:**
 - WoW Classic (TBC, Wrath, Mists)
-- The War Within (11.x)
 
 **Not Supported:**
 - Midnight (12.0+) and future retail expansions unless Blizzard makes any changes
@@ -21,9 +20,8 @@ See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](
 
 ## Supported Taunt Versions
 
-### Mainline and Classic
+### Classic
 
-- The War Within (11.x)
 - Mists of Pandaria (5.x)
 - Wrath Classic (3.x)
 - The Burning Crusade (2.x)
