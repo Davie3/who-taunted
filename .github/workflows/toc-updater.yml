@@ -8,13 +8,17 @@ on:
 env:
   # JSON config for supported expansions
   # Keys match p3lim flavor names, values contain display name, TOC file, and BlizzTrack product
+  #
+  # NOTE: Retail/Mainline excluded - WoW v12+ combat log API changes make the addon incompatible.
+  # To re-enable retail, add the following entry to EXPANSIONS, add "retail" to the flavor list,
+  # restore sort_by(. != "retail") in the 3 jq expressions below, and add "mainline" to PR labels.
+  #   "retail": {
+  #     "name": "Midnight",
+  #     "toc": "WhoTaunted_Mainline.toc",
+  #     "blizztrack": "wow"
+  #   },
   EXPANSIONS: |
     {
-      "retail": {
-        "name": "Midnight",
-        "toc": "WhoTaunted_Mainline.toc",
-        "blizztrack": "wow"
-      },
       "mists": {
         "name": "Mists of Pandaria",
         "toc": "WhoTaunted_Mists.toc",
@@ -77,8 +81,8 @@ jobs:
       - name: Update TOC Interface Versions
         uses: p3lim/toc-interface-updater@v4
         with:
+          # NOTE: "retail" excluded (see EXPANSIONS comment for reversal steps)
           flavor: |
-            retail
             mists
             wrath
             tbc
@@ -216,7 +220,7 @@ jobs:
 
           # Build changelog entries
           CHANGELOG_ENTRIES=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
             before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
             after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
             if [ "$before_val" != "$after_val" ]; then
@@ -229,7 +233,7 @@ jobs:
 
           # Build PR table rows
           TABLE_ROWS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
             toc=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].toc')
             before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
             after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
@@ -239,7 +243,7 @@ jobs:
 
           # Build BlizzTrack review links
           BLIZZTRACK_LINKS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys | sort_by(. != "retail") | .[]'); do
+          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
             name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
             product=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].blizztrack')
             BLIZZTRACK_LINKS+="- [ ] Review [$name BlizzTrack](${{ env.BLIZZTRACK_BASE }}/$product?type=versions)\n"
@@ -314,8 +318,8 @@ jobs:
             - [ ] Verify [Wago Package](${{ env.WAGO_WEBSITE }})
             - [ ] Merge PR
           assignees: davie3
+          # NOTE: Add "mainline" label back if retail is re-enabled
           labels: |
             compatibility
-            mainline
             classic
           delete-branch: true
