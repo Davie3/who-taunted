@@ -1,3 +1,6 @@
+## [v2.2.2](https://github.com/Davie3/who-taunted/releases/tag/v2.2.2)
+- 3.4.5, 3.80.1 Wrath of the Lich King compatibility.
+
 ## [v2.2.1](https://github.com/Davie3/who-taunted/releases/tag/v2.2.1)
 - 12.0.0, 12.0.1 Midnight compatibility.
 - Archive 11.x The War Within
