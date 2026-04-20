@@ -86,8 +86,8 @@ jobs:
             mists
             wrath
             tbc
-          beta: true
-          ptr: true
+          beta: false
+          ptr: false
 
       - name: Discard changes to untracked TOC files
         run: |
