@@ -1,3 +1,6 @@
+## [v2.2.3](https://github.com/Davie3/who-taunted/releases/tag/v2.2.3)
+- 5.5.4 Mists of Pandaria compatibility.
+
 ## [v2.2.2](https://github.com/Davie3/who-taunted/releases/tag/v2.2.2)
 - 3.4.5, 3.80.1 Wrath of the Lich King compatibility.
 
