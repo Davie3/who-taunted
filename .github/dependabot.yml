@@ -9,3 +9,5 @@ updates:
       timezone: "America/Los_Angeles"
     labels:
       - "dependencies"
+    cooldown:
+      default-days: 7
