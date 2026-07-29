@@ -56,6 +56,9 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 | **Warlock**      | N/A                                                  | N/A                                  |
 
 ## Change Log
+## [v2.2.5](https://github.com/Davie3/who-taunted/releases/tag/v2.2.5)
+- 3.4.5, 3.80.2 Wrath of the Lich King compatibility.
+
 ## [v2.2.4](https://github.com/Davie3/who-taunted/releases/tag/v2.2.4)
 - 2.5.6 The Burning Crusade compatibility.
 
