@@ -11,9 +11,11 @@ Tracks player taunts and displays who they taunted, what ability they used to ta
 See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](https://worldofwarcraft.blizzard.com/en-us/news/24246290)
 
 **Supported:**
-- WoW Classic (TBC, Wrath, Mists)
+
+- WoW Classic (Vanilla, TBC, Wrath, Mists)
 
 **Not Supported:**
+
 - Midnight (12.0+) and future retail expansions unless Blizzard makes any changes
 
 ---
@@ -25,6 +27,7 @@ See Blizzard's blog post: [Combat Philosophy and Addon Disarmament in Midnight](
 - Mists of Pandaria (5.x)
 - Wrath Classic (3.x)
 - The Burning Crusade (2.x)
+- Classic Era (1.x)
 
 Full taunt list and changelog on GitHub - <https://github.com/Davie3/who-taunted>
 

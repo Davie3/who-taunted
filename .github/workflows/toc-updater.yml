@@ -33,6 +33,11 @@ env:
         "name": "The Burning Crusade",
         "toc": "WhoTaunted_TBC.toc",
         "blizztrack": "wow_anniversary"
+      },
+      "vanilla": {
+        "name": "Classic Era",
+        "toc": "WhoTaunted_Vanilla.toc",
+        "blizztrack": "wow_classic_era"
       }
     }
   BLIZZTRACK_BASE: https://blizztrack.com/view
@@ -86,6 +91,7 @@ jobs:
             mists
             wrath
             tbc
+            vanilla
           beta: false
           ptr: false
 
