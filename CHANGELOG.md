@@ -1,3 +1,7 @@
+## [v2.3-beta1](https://github.com/Davie3/who-taunted/releases/tag/v2.3-beta1)
+- Initial Classic Era (1.15.x) support. Beta build - please report issues.
+- Use Settings.OpenToCategory (with legacy fallback) for the options chat command.
+
 ## [v2.2.5](https://github.com/Davie3/who-taunted/releases/tag/v2.2.5)
 - 3.4.5, 3.80.2 Wrath of the Lich King compatibility.
 
