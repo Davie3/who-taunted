@@ -189,7 +189,11 @@ end
 
 function WhoTaunted:ChatCommand(input)
 	if (not input) or (input:trim() == "") then
-		InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
+		if (Settings) and (Settings.OpenToCategory) then
+			Settings.OpenToCategory("Who Taunted?");
+		else
+			InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
+		end
 	end
 end
 
