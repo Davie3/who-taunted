@@ -129,6 +129,7 @@ function WhoTaunted:OnInitialize()
 		end
 	else
 		WhoTaunted:Print("|cffffff78"..WhoTauntedVersion.."|r "..L["has loaded! Please report any issues on GitHub"].." - |cffffff78https://github.com/Davie3/who-taunted/issues|r");
+		WhoTaunted:Print("|cffffd93dBeta build.|r Classic Era (1.15) support is new - please report anything broken.");
 	end
 end
 
