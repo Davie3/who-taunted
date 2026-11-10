@@ -19,7 +19,7 @@
 - [ ] Update README-CF.md supported taunts table
 - [ ] Move previous current version to Legacy table if needed
 - [ ] Update version references in documentation
-- [ ] Update CHANGELOG.md with version compatibility
+- [ ] Update CHANGELOG.md with version compatibility (replace it with this version's entry only, and add the same entry to the top of `CHANGELOG-HISTORY.md`)
 - [ ] Check TOC format reference: <https://warcraft.wiki.gg/wiki/TOC_format>
 
 ## GitHub Workflow
