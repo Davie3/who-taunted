@@ -7,50 +7,11 @@ on:
     - cron: "30 0 * * 1"
   workflow_dispatch:
 
-env:
-  # JSON config for supported expansions
-  # Keys match p3lim flavor names, values contain display name, TOC file, and BlizzTrack product
-  #
-  # NOTE: Retail/Mainline excluded - WoW v12+ combat log API changes make the addon incompatible.
-  # To re-enable retail, add the following entry to EXPANSIONS, add "retail" to the flavor list,
-  # restore sort_by(. != "retail") in the 3 jq expressions below, and add "mainline" to PR labels.
-  #   "retail": {
-  #     "name": "Midnight",
-  #     "toc": "WhoTaunted_Mainline.toc",
-  #     "blizztrack": "wow"
-  #   },
-  EXPANSIONS: |
-    {
-      "mists": {
-        "name": "Mists of Pandaria",
-        "toc": "WhoTaunted_Mists.toc",
-        "blizztrack": "wow_classic"
-      },
-      "wrath": {
-        "name": "Wrath of the Lich King",
-        "toc": "WhoTaunted_Wrath.toc",
-        "blizztrack": "wow_classic_titan"
-      },
-      "tbc": {
-        "name": "The Burning Crusade",
-        "toc": "WhoTaunted_TBC.toc",
-        "blizztrack": "wow_anniversary"
-      },
-      "vanilla": {
-        "name": "Classic Era",
-        "toc": "WhoTaunted_Vanilla.toc",
-        "blizztrack": "wow_classic_era"
-      }
-    }
-  BLIZZTRACK_BASE: https://blizztrack.com/view
-  CHANGELOG: CHANGELOG.md
-  CHANGELOG_HISTORY: CHANGELOG-HISTORY.md
-  TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
-  LATEST_PATCH_INFO: https://warcraft.wiki.gg/wiki/Template:LatestPatchInfo
-  API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
-  CURSEFORGE_WEBSITE: https://www.curseforge.com/wow/addons/who-taunted/files
-  WOWINTERFACE_WEBSITE: https://www.wowinterface.com/downloads/info14842-WhoTaunted.html
-  WAGO_WEBSITE: https://addons.wago.io/addons/who-taunted/versions
+permissions: {}
+
+concurrency:
+  group: toc-updater
+  cancel-in-progress: false
 
 jobs:
   # GitHub disables scheduled workflows in public repos after 60 days without
@@ -58,281 +19,55 @@ jobs:
   keepalive:
     if: github.event.schedule == '30 0 * * 1'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       actions: write
     steps:
       - name: Reset inactivity timer
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/toc-updater.yml/enable"
+          REPOSITORY: ${{ github.repository }}
+        run: gh api -X PUT "repos/$REPOSITORY/actions/workflows/toc-updater.yml/enable"
 
+  # Expansions, TOC files and PR content are configured in .github/toc-updater/.
   toc-update:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Clone Project
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Fetch Repo Tags
-        run: git fetch --tags
+      - name: Snapshot interface values
+        run: python3 .github/toc-updater/toc_updater.py before
 
-      - name: Get current interface values
-        id: before
-        run: |
-          # Create a hash of Interface lines for tracked TOC files only
-          TOC_FILES=""
-          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
-            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
-            TOC_FILES="$TOC_FILES $toc"
-          done
-          echo "interfaces=$(grep -h '## Interface:' $TOC_FILES | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-
-          # Dynamically capture interface values for each expansion
-          VALUES='{}'
-          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
-            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
-            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
-            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
-          done
-          echo "values=$VALUES" >> $GITHUB_OUTPUT
-
+      # Versions come from each TOC's filename suffix; the flavor input only
+      # applies to TOCs without one, which this repo doesn't have.
       - name: Update TOC Interface Versions
-        uses: p3lim/toc-interface-updater@v4
+        uses: p3lim/toc-interface-updater@b39657008063f1ea2d839d40d528048e29a0b096 # v4.17
         with:
-          # NOTE: "retail" excluded (see EXPANSIONS comment for reversal steps)
-          flavor: |
-            mists
-            wrath
-            tbc
-            vanilla
           beta: false
           ptr: false
 
-      - name: Discard changes to untracked TOC files
-        run: |
-          # Get list of tracked TOC files from EXPANSIONS
-          TRACKED_FILES=""
-          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
-            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
-            TRACKED_FILES="$TRACKED_FILES $toc"
-          done
-
-          # Discard changes to any .toc files that aren't tracked
-          for file in *.toc; do
-            if [[ ! " $TRACKED_FILES " =~ " $file " ]]; then
-              echo "Discarding changes to untracked file: $file"
-              git checkout HEAD -- "$file" 2>/dev/null || true
-            fi
-          done
-
-      - name: Ensure static interface values for Wrath
-        run: |
-          # Add 30405 to Wrath if not present (legacy support for WoW Anniversary)
-          if ! grep -q "30405" WhoTaunted_Wrath.toc; then
-            sed -i 's/## Interface: \(.*\)/## Interface: 30405, \1/' WhoTaunted_Wrath.toc
-          fi
-
-      - name: Get updated interface values
-        id: after
-        run: |
-          # Create a hash of Interface lines for tracked TOC files only
-          TOC_FILES=""
-          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
-            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
-            TOC_FILES="$TOC_FILES $toc"
-          done
-          echo "interfaces=$(grep -h '## Interface:' $TOC_FILES | sort -u | md5sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-
-          # Dynamically capture interface values for each expansion
-          VALUES='{}'
-          for key in $(echo '${{ env.EXPANSIONS }}' | jq -r 'keys[]'); do
-            toc=$(echo '${{ env.EXPANSIONS }}' | jq -r --arg k "$key" '.[$k].toc')
-            value=$(grep -oP '## Interface: \K[0-9, ]+' "$toc" 2>/dev/null || echo "")
-            VALUES=$(echo "$VALUES" | jq -c --arg k "$key" --arg v "$value" '. + {($k): $v}')
-          done
-          echo "values=$VALUES" >> $GITHUB_OUTPUT
-
-      - name: Check for changes
-        id: changes
-        run: |
-          if [ "${{ steps.before.outputs.interfaces }}" != "${{ steps.after.outputs.interfaces }}" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Generate branch name
-        if: steps.changes.outputs.changed == 'true'
-        id: branch
-        run: |
-          # Create a branch name based on interface hash
-          BRANCH_NAME="toc-update-${{ steps.after.outputs.interfaces }}"
-          echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-      - name: Check if branch already exists
-        if: steps.changes.outputs.changed == 'true'
-        id: check_branch
-        run: |
-          if git ls-remote --heads origin "${{ steps.branch.outputs.name }}" | grep -q "${{ steps.branch.outputs.name }}"; then
-            echo "Branch ${{ steps.branch.outputs.name }} exists"
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Branch ${{ steps.branch.outputs.name }} does not exist"
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get next version number
-        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        id: version
-        run: |
-          # Get the latest tag and remove the 'v' prefix
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) | sed 's/^v//')
-          echo "Latest tag: $LATEST_TAG"
-
-          # Parse the latest tag into major, minor, patch
-          IFS='.' read -r major minor patch <<<"$LATEST_TAG"
-          # Increment patch version
-          patch=$((patch + 1))
-
-          # Create the new version tag
-          NEW_VERSION="v$major.$minor.$patch"
-          echo "New tag: $NEW_VERSION"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
       - name: Build changelog and PR content
-        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        id: content
-        run: |
-          # Function to convert interface number(s) to version string(s)
-          # Handles comma-separated multi-interface format (e.g., "110207, 120000, 120001" -> "11.2.7, 12.0.0, 12.0.1")
-          interface_to_version() {
-            local input="$1"
-            local result=""
-            IFS=',' read -ra interfaces <<< "$input"
-            for interface in "${interfaces[@]}"; do
-              interface=$(echo "$interface" | tr -d ' ')
-              local len=${#interface}
-              local version=""
-              if [ $len -eq 6 ]; then
-                local major=$((10#${interface:0:2}))
-                local minor=$((10#${interface:2:2}))
-                local patch=$((10#${interface:4:2}))
-                version="$major.$minor.$patch"
-              else
-                local major=$((10#${interface:0:1}))
-                local minor=$((10#${interface:1:2}))
-                local patch=$((10#${interface:3:2}))
-                version="$major.$minor.$patch"
-              fi
-              if [ -n "$result" ]; then
-                result="$result, $version"
-              else
-                result="$version"
-              fi
-            done
-            echo "$result"
-          }
-
-          BEFORE='${{ steps.before.outputs.values }}'
-          AFTER='${{ steps.after.outputs.values }}'
-          EXPANSIONS='${{ env.EXPANSIONS }}'
-
-          # Build changelog entries
-          CHANGELOG_ENTRIES=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
-            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
-            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
-            if [ "$before_val" != "$after_val" ]; then
-              name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
-              version=$(interface_to_version "$after_val")
-              CHANGELOG_ENTRIES+="- $version $name compatibility.\n"
-            fi
-          done
-          CHANGELOG_ENTRIES=$(echo -e "$CHANGELOG_ENTRIES" | sed '/^$/d')
-
-          # Build PR table rows
-          TABLE_ROWS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
-            toc=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].toc')
-            before_val=$(echo "$BEFORE" | jq -r --arg k "$key" '.[$k]')
-            after_val=$(echo "$AFTER" | jq -r --arg k "$key" '.[$k]')
-            TABLE_ROWS+="| $toc | \`$before_val\` | \`$after_val\` |\n"
-          done
-          TABLE_ROWS=$(echo -e "$TABLE_ROWS" | sed '/^$/d')
-
-          # Build BlizzTrack review links
-          BLIZZTRACK_LINKS=""
-          for key in $(echo "$EXPANSIONS" | jq -r 'keys[]'); do
-            name=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].name')
-            product=$(echo "$EXPANSIONS" | jq -r --arg k "$key" '.[$k].blizztrack')
-            BLIZZTRACK_LINKS+="- [ ] Review [$name BlizzTrack](${{ env.BLIZZTRACK_BASE }}/$product?type=versions)\n"
-          done
-          BLIZZTRACK_LINKS=$(echo -e "$BLIZZTRACK_LINKS" | sed '/^$/d')
-
-          # Output all content (using printf to avoid extra newlines)
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          printf '%s' "$CHANGELOG_ENTRIES" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "table<<EOF" >> $GITHUB_OUTPUT
-          printf '%s' "$TABLE_ROWS" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-          echo "blizztrack<<EOF" >> $GITHUB_OUTPUT
-          printf '%s' "$BLIZZTRACK_LINKS" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      # CHANGELOG.md holds only the release being shipped (the packagers publish the
-      # whole file); CHANGELOG-HISTORY.md keeps every release.
-      - name: Update CHANGELOG.md and CHANGELOG-HISTORY.md
-        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        run: |
-          {
-            echo "## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})"
-            echo "${{ steps.content.outputs.changelog }}"
-          } > $CHANGELOG
-          {
-            cat $CHANGELOG
-            echo ""
-            cat $CHANGELOG_HISTORY
-          } > temp_changelog.txt
-          mv temp_changelog.txt $CHANGELOG_HISTORY
+        id: after
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/toc-updater/toc_updater.py after
 
       - name: Create Pull Request
-        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        uses: peter-evans/create-pull-request@v8
+        if: steps.after.outputs.create == 'true'
+        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         with:
-          title: ${{ steps.version.outputs.new_version }}
-          commit-message: Update TOC Interface versions - ${{ steps.branch.outputs.name }}
-          branch: ${{ steps.branch.outputs.name }}
-          body: |
-            ## Interface Version Changes
-
-            | TOC File | Before | After |
-            |----------|--------|-------|
-            ${{ steps.content.outputs.table }}
-
-            ## Changelog
-            ${{ steps.content.outputs.changelog }}
-
-            ## Version Checklist
-            - [ ] Review [TOC Format Reference](${{ env.TOC_FORMAT_WEBSITE }})
-            - [ ] Review [Latest Patch Info](${{ env.LATEST_PATCH_INFO }})
-            ${{ steps.content.outputs.blizztrack }}
-            - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
-            - [ ] Verify `CHANGELOG.md` (this release only)
-            - [ ] Verify `CHANGELOG-HISTORY.md`
-            - [ ] Remove debug code
-            - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.version.outputs.new_version }}&title=${{ steps.version.outputs.new_version }}&target=${{ steps.branch.outputs.name }})
-            - [ ] Verify [CurseForge Package](${{ env.CURSEFORGE_WEBSITE }})
-            - [ ] Verify [WoWInterface Package](${{ env.WOWINTERFACE_WEBSITE }})
-            - [ ] Verify [Wago Package](${{ env.WAGO_WEBSITE }})
-            - [ ] Merge PR
+          title: ${{ steps.after.outputs.version }}
+          commit-message: Update TOC Interface versions - ${{ steps.after.outputs.branch }}
+          branch: ${{ steps.after.outputs.branch }}
+          body-path: ${{ steps.after.outputs.body_path }}
           assignees: davie3
           # NOTE: Add "mainline" label back if retail is re-enabled
           labels: |

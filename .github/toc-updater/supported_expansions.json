@@ -1,0 +1,23 @@
+{
+  "mists": {
+    "name": "Mists of Pandaria",
+    "toc": "WhoTaunted_Mists.toc",
+    "blizztrack": "wow_classic"
+  },
+  "wrath": {
+    "name": "Wrath of the Lich King",
+    "toc": "WhoTaunted_Wrath.toc",
+    "blizztrack": "wow_classic_titan",
+    "static_interfaces": ["30405"]
+  },
+  "tbc": {
+    "name": "The Burning Crusade",
+    "toc": "WhoTaunted_TBC.toc",
+    "blizztrack": "wow_anniversary"
+  },
+  "vanilla": {
+    "name": "Classic Era",
+    "toc": "WhoTaunted_Vanilla.toc",
+    "blizztrack": "wow_classic_era"
+  }
+}
