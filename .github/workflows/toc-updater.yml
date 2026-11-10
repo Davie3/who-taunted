@@ -3,6 +3,8 @@ name: Update TOC Interface version(s)
 on:
   schedule:
     - cron: "0 * * * *"
+    # Weekly keepalive (see keepalive job)
+    - cron: "30 0 * * 1"
   workflow_dispatch:
 
 env:
@@ -51,8 +53,21 @@ env:
   WAGO_WEBSITE: https://addons.wago.io/addons/who-taunted/versions
 
 jobs:
+  # GitHub disables scheduled workflows in public repos after 60 days without
+  # repository activity. Re-enabling via the API resets that timer.
+  keepalive:
+    if: github.event.schedule == '30 0 * * 1'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Reset inactivity timer
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/toc-updater.yml/enable"
+
   toc-update:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Clone Project
