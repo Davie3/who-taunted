@@ -11,23 +11,34 @@ on:
         required: true
         type: boolean
 
+permissions: {}
+
+concurrency:
+  group: packager-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
+    if: github.event_name != 'workflow_dispatch' || inputs.confirmation
     runs-on: ubuntu-latest
-
-    env:
-      CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
-      WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
-      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+    timeout-minutes: 20
+    permissions:
+      # GitHub release upload via GITHUB_OAUTH
+      contents: write
 
     steps:
       - name: Clone Project
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Package WoWInterface and Wago
-        uses: BigWigsMods/packager@v2
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2.7.0
         with:
           args: -L -n "{package-name}-{project-version}:{package-name}-{project-version}"
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
