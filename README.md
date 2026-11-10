@@ -63,6 +63,11 @@ Help localize on Curseforge! - <https://legacy.curseforge.com/wow/addons/who-tau
 
 ## Change Log
 
+## [v2.3](https://github.com/Davie3/who-taunted/releases/tag/v2.3)
+
+- 1.15.9 Classic Era compatibility.
+- Fixed the options chat command not opening the options panel.
+
 ## [v2.2.5](https://github.com/Davie3/who-taunted/releases/tag/v2.2.5)
 
 - 3.4.5, 3.80.2 Wrath of the Lich King compatibility.
