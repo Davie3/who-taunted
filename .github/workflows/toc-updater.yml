@@ -44,7 +44,7 @@ env:
     }
   BLIZZTRACK_BASE: https://blizztrack.com/view
   CHANGELOG: CHANGELOG.md
-  README: README.md
+  CHANGELOG_HISTORY: CHANGELOG-HISTORY.md
   TOC_FORMAT_WEBSITE: https://warcraft.wiki.gg/wiki/TOC_format
   LATEST_PATCH_INFO: https://warcraft.wiki.gg/wiki/Template:LatestPatchInfo
   API_CHANGE_SUMMARIES: https://warcraft.wiki.gg/wiki/API_change_summaries
@@ -287,26 +287,21 @@ jobs:
           echo "" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Update CHANGELOG.md
+      # CHANGELOG.md holds only the release being shipped (the packagers publish the
+      # whole file); CHANGELOG-HISTORY.md keeps every release.
+      - name: Update CHANGELOG.md and CHANGELOG-HISTORY.md
         if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
         run: |
           {
             echo "## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})"
             echo "${{ steps.content.outputs.changelog }}"
-            echo ""
+          } > $CHANGELOG
+          {
             cat $CHANGELOG
+            echo ""
+            cat $CHANGELOG_HISTORY
           } > temp_changelog.txt
-          mv temp_changelog.txt $CHANGELOG
-
-      - name: Update README.md
-        if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
-        run: |
-          NEW_LINES="## [${{ steps.version.outputs.new_version }}](https://github.com/Davie3/who-taunted/releases/tag/${{ steps.version.outputs.new_version }})
-          ${{ steps.content.outputs.changelog }}
-          "
-
-          start_line=$(grep -n "## Change Log" "$README" | cut -d: -f1)
-          awk -v start="$start_line" -v lines="$NEW_LINES" 'NR==start+1 {print lines} {print}' "$README" > tmpfile && mv tmpfile "$README"
+          mv temp_changelog.txt $CHANGELOG_HISTORY
 
       - name: Create Pull Request
         if: steps.changes.outputs.changed == 'true' && steps.check_branch.outputs.exists == 'false'
@@ -330,8 +325,8 @@ jobs:
             - [ ] Review [Latest Patch Info](${{ env.LATEST_PATCH_INFO }})
             ${{ steps.content.outputs.blizztrack }}
             - [ ] Review [API Change Summaries](${{ env.API_CHANGE_SUMMARIES }})
-            - [ ] Verify `CHANGELOG.md`
-            - [ ] Verify `README.md`
+            - [ ] Verify `CHANGELOG.md` (this release only)
+            - [ ] Verify `CHANGELOG-HISTORY.md`
             - [ ] Remove debug code
             - [ ] Create [new version tag/release](https://github.com/Davie3/who-taunted/releases/new?tag=${{ steps.version.outputs.new_version }}&title=${{ steps.version.outputs.new_version }}&target=${{ steps.branch.outputs.name }})
             - [ ] Verify [CurseForge Package](${{ env.CURSEFORGE_WEBSITE }})
