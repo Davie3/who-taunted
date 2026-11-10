@@ -2,11 +2,13 @@
 """Detect TOC Interface bumps and prepare the release PR for the TOC updater workflow.
 
 Usage (from the repository root):
-  toc_updater.py before   Snapshot tracked Interface values and output the flavor list.
+  toc_updater.py before   Snapshot tracked Interface values.
   toc_updater.py after    Compare with the snapshot; on change, write the changelogs and PR body.
 
-Tracked expansions live in expansions.json (keys are p3lim/toc-interface-updater flavor
-names). Outputs go to $GITHUB_OUTPUT, or stdout when run locally. Standard library only.
+Tracked expansions live in expansions.json; changes to any other TOC are discarded.
+p3lim/toc-interface-updater picks each TOC's game version from its filename suffix
+(_Mists, _Wrath, ...), so the keys are only labels. Outputs go to $GITHUB_OUTPUT, or
+stdout when run locally. Standard library only.
 
 Retail/Mainline is excluded: WoW 12.0+ combat log API changes make the addon incompatible.
 To re-enable it, add a "retail" entry (toc WhoTaunted_Mainline.toc, blizztrack "wow") to
@@ -172,8 +174,6 @@ def write_pr_body(version, branch, changelog, before, after):
 
 def cmd_before():
     SNAPSHOT.write_text(json.dumps(snapshot()), encoding="utf-8")
-    # Trailing newline matters: the action strips one character before reading lines.
-    set_output("flavors", "\n".join(EXPANSIONS) + "\n")
 
 
 def cmd_after():

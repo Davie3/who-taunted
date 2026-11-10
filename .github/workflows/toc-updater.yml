@@ -44,13 +44,13 @@ jobs:
           persist-credentials: false
 
       - name: Snapshot interface values
-        id: before
         run: python3 .github/toc-updater/toc_updater.py before
 
+      # Versions come from each TOC's filename suffix; the flavor input only
+      # applies to TOCs without one, which this repo doesn't have.
       - name: Update TOC Interface Versions
         uses: p3lim/toc-interface-updater@b39657008063f1ea2d839d40d528048e29a0b096 # v4.17
         with:
-          flavor: ${{ steps.before.outputs.flavors }}
           beta: false
           ptr: false
 
