@@ -24,16 +24,13 @@
 
 ## GitHub Workflow
 
-- [ ] Update `.github/workflows/toc-updater.yml`:
-  - [ ] Update `MAINLINE_NAME` environment variable
-  - [ ] Update `CLASSIC_NAME` environment variable
-  - [ ] Update `RETAIL_TOC` to point to new mainline TOC file
-  - [ ] Update `CLASSIC_TOC` to point to new classic TOC file
-  - [ ] Verify workflow triggers and schedule (currently runs hourly)
-  - [ ] Check API endpoints are current:
-    - [ ] Blizztrack mainline API: <https://blizztrack.com/api/manifest/wow/versions>
-    - [ ] Blizztrack classic API: <https://blizztrack.com/api/manifest/wow_classic/versions>
-    - [ ] TOC format reference: <https://warcraft.wiki.gg/wiki/TOC_format>
+- [ ] Update `.github/toc-updater/expansions.json`:
+  - [ ] Add/rename the expansion entry (key is the `p3lim/toc-interface-updater` flavor name)
+  - [ ] Point `toc` to the new TOC file
+  - [ ] Update `blizztrack` product for the PR review links
+  - [ ] Review `static_interfaces` (interfaces always kept in a TOC)
+- [ ] Verify workflow triggers and schedule in `.github/workflows/toc-updater.yml` (currently runs hourly)
+- [ ] Check TOC format reference: <https://warcraft.wiki.gg/wiki/TOC_format>
 
 ## Testing & Validation
 
