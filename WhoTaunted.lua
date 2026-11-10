@@ -10,6 +10,7 @@ local DisableInPvPZone = false;
 local version, build, date, tocVersion, localizedVersion, buildType = GetBuildInfo();
 local WhoTauntedVersion = C_AddOns.GetAddOnMetadata("WhoTaunted", "Version");
 local NewVersionAvailable = false;
+local OptionsCategoryID;
 local RecentTaunts = {};
 local TauntTypes = {
 	Normal = "Normal",
@@ -107,7 +108,7 @@ function WhoTaunted:OnInitialize()
 	WhoTaunted.db = LibStub("AceDB-3.0"):New("WhoTauntedDB", WhoTaunted.defaults, "Default");
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("WhoTaunted", WhoTaunted.options);
 	WhoTaunted.options.args.Profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(WhoTaunted.db);
-	AceConfig:AddToBlizOptions("WhoTaunted", "Who Taunted?");
+	OptionsCategoryID = select(2, AceConfig:AddToBlizOptions("WhoTaunted", "Who Taunted?"));
 
 	--Convert the old Options "profile" to the new "Default"
 	if (WhoTaunted.db:GetCurrentProfile() == "profile") and (WhoTaunted.db.profile.ConvertedProfiles == false) then
@@ -189,7 +190,11 @@ end
 
 function WhoTaunted:ChatCommand(input)
 	if (not input) or (input:trim() == "") then
-		InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
+		if (Settings) and (Settings.OpenToCategory) then
+			Settings.OpenToCategory(OptionsCategoryID);
+		else
+			InterfaceOptionsFrame_OpenToCategory("Who Taunted?");
+		end
 	end
 end
 
