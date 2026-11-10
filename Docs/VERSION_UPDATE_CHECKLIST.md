@@ -24,7 +24,7 @@
 
 ## GitHub Workflow
 
-- [ ] Update `.github/toc-updater/expansions.json`:
+- [ ] Update `.github/toc-updater/supported_expansions.json`:
   - [ ] Add/rename the expansion entry (the TOC filename suffix decides which game version it gets)
   - [ ] Point `toc` to the new TOC file
   - [ ] Update `blizztrack` product for the PR review links

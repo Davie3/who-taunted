@@ -5,14 +5,14 @@ Usage (from the repository root):
   toc_updater.py before   Snapshot tracked Interface values.
   toc_updater.py after    Compare with the snapshot; on change, write the changelogs and PR body.
 
-Tracked expansions live in expansions.json; changes to any other TOC are discarded.
+Tracked expansions live in supported_expansions.json; changes to any other TOC are discarded.
 p3lim/toc-interface-updater picks each TOC's game version from its filename suffix
 (_Mists, _Wrath, ...), so the keys are only labels. Outputs go to $GITHUB_OUTPUT, or
 stdout when run locally. Standard library only.
 
 Retail/Mainline is excluded: WoW 12.0+ combat log API changes make the addon incompatible.
 To re-enable it, add a "retail" entry (toc WhoTaunted_Mainline.toc, blizztrack "wow") to
-expansions.json and add the "mainline" label in toc-updater.yml.
+supported_expansions.json and add the "mainline" label in toc-updater.yml.
 """
 
 import hashlib
@@ -30,7 +30,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 HERE = Path(__file__).resolve().parent
-EXPANSIONS = json.loads((HERE / "expansions.json").read_text(encoding="utf-8"))
+EXPANSIONS = json.loads(
+    (HERE / "supported_expansions.json").read_text(encoding="utf-8")
+)
 PR_TEMPLATE = HERE / "pr-body.md"
 
 CHANGELOG = Path("CHANGELOG.md")
